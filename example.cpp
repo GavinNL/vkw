@@ -61,6 +61,7 @@ int main()
 
     //surfaceInfo.depthFormat = VkFormat::VK_FORMAT_UNDEFINED; // set to undefined to disable depth image creation
     surfaceInfo.additionalImageCount = 1; // create one additional image in the swap chain for triple buffering.
+    surfaceInfo.enabledFeatures.tessellationShader = 1;
 
     // Only call this once.
     window->initSurface(surfaceInfo);

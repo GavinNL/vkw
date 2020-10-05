@@ -138,6 +138,7 @@ void SDLVulkanWindow::initSurface( SDLVulkanWindow::SurfaceInitilizationInfo I)
     m_additionalImages = I.additionalImageCount;
     m_depthFormat = I.depthFormat;
     m_presentMode = I.presentMode;
+    m_physicalDeviceFeatures = I.enabledFeatures;
 
     //_createDebug();
     SDL_Vulkan_CreateSurface(m_window, m_instance, &m_surface);
@@ -700,8 +701,18 @@ VkDevice SDLVulkanWindow::_createDevice()
     queueCreateInfo.queueCount = 1;
     queueCreateInfo.pQueuePriorities = &queuePriority;
 
-    //https://en.wikipedia.org/wiki/Anisotropic_filtering
     VkPhysicalDeviceFeatures deviceFeatures = {};
+    vkGetPhysicalDeviceFeatures(m_physicalDevice, &deviceFeatures);
+    VkBool32 * feat = reinterpret_cast<VkBool32*>(&deviceFeatures);
+    VkBool32 * featEnd = feat + sizeof(deviceFeatures)/sizeof(VkBool32);
+    uint32_t i=0;
+    while( feat != featEnd)
+    {
+        *feat &= reinterpret_cast<VkBool32*>(&m_physicalDeviceFeatures)[i++];
+        feat++;
+    }
+    //https://en.wikipedia.org/wiki/Anisotropic_filtering
+    //VkPhysicalDeviceFeatures deviceFeatures = {};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
 
     VkDeviceCreateInfo createInfo = {};
@@ -782,6 +793,8 @@ VkPhysicalDevice SDLVulkanWindow::_selectPhysicalDevice()
     vkEnumeratePhysicalDevices(m_instance, &physicalDeviceCount, nullptr);
     physicalDevices.resize(physicalDeviceCount);
     vkEnumeratePhysicalDevices(m_instance, &physicalDeviceCount, physicalDevices.data());
+
+
 
     //m_physicalDevice = physicalDevices[0];
     return physicalDevices[0];;
