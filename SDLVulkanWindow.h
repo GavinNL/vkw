@@ -24,6 +24,8 @@ class SDLVulkanWindow
         VkFormat           depthFormat = VkFormat::VK_FORMAT_D32_SFLOAT_S8_UINT;
         VkPresentModeKHR   presentMode = VK_PRESENT_MODE_FIFO_KHR;
         uint32_t  additionalImageCount = 1; // how many additional swapchain images should we create ( total = min_images + additionalImageCount
+        VkPhysicalDeviceFeatures enabledFeatures = {}; // which additional features should we enable?
+                                                  // if the device does not support this feature, it will not be enabled
     };
 
 
@@ -36,7 +38,7 @@ class SDLVulkanWindow
 
     // 3. Call this function to create the device and all other primitives
     void initSurface(SDLVulkanWindow::SurfaceInitilizationInfo I);
-    void init();
+
 
     std::vector<std::string> getAvailableVulkanExtensions();
     std::vector<std::string> getAvailableVulkanLayers();
@@ -179,6 +181,8 @@ protected:
         VkInstance   m_instance = VK_NULL_HANDLE;
         VkSurfaceKHR m_surface  = VK_NULL_HANDLE;
         VkPhysicalDevice m_physicalDevice;
+        VkPhysicalDeviceFeatures m_physicalDeviceFeatures; // availableFeatures
+
         int32_t m_graphicsQueueIndex;
         int32_t m_presentQueueIndex;
         VkDevice m_device = VK_NULL_HANDLE;
