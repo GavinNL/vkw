@@ -165,6 +165,18 @@ class SDLVulkanWindow
     {
         return m_surfaceFormat.format;
     }
+    VkFormat getDepthFormat() const
+    {
+        return m_depthFormat;
+    }
+    VkImage getDepthImage() const
+    {
+        return m_depthStencil;
+    }
+    VkImageView getDepthImageView() const
+    {
+        return m_depthStencilImageView;
+    }
     //===================================================================
 
     void rebuildSwapchain()

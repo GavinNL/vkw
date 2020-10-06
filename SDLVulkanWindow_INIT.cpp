@@ -425,7 +425,7 @@ void SDLVulkanWindow::_createDepthStencil()
     //VkBool32 validDepthFormat = getSupportedDepthFormat(m_physicalDevice, &m_depthFormat);
     auto p =
     createImage(m_swapchainSize.width, m_swapchainSize.height,
-                VK_FORMAT_D32_SFLOAT_S8_UINT, VK_IMAGE_TILING_OPTIMAL,
+                m_depthFormat, VK_IMAGE_TILING_OPTIMAL,
                 VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
     m_depthStencil = p.first;
