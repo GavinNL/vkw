@@ -20,14 +20,20 @@ endif()
 find_package(Vulkan)
 
 
-file(GLOB_RECURSE srcFiles ${CMAKE_CURRENT_SOURCE_DIR}/* )
+################################################################################
+add_library(vkw INTERFACE)
+add_library(vkw::vkw ALIAS vkw)
+target_include_directories(vkw INTERFACE include)
+target_link_libraries( vkw INTERFACE Vulkan::Vulkan)
+################################################################################
 
-add_executable( example example.cpp SDLVulkanWindow_INIT.cpp SDLVulkanWindow_USAGE.cpp )
 
-target_link_libraries(example 
-                        PUBLIC 
-                            CONAN_PKG::sdl2 
-                            Vulkan::Vulkan)
+
+add_executable( example_SDLWindow example_SDLWindow.cpp )
+target_link_libraries(example_SDLWindow  CONAN_PKG::sdl2  vkw::vkw)
+
+add_executable( example_widget example_widget.cpp )
+target_link_libraries(example_widget  CONAN_PKG::sdl2  vkw::vkw)
 
 ################################################################################
 

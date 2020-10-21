@@ -7,7 +7,7 @@
 #include <set>
 
 
-SDLVulkanWindow::Frame SDLVulkanWindow::acquireNextFrame()
+Frame SDLVulkanWindow::acquireNextFrame()
 {
     uint32_t frameIndex;
     vkAcquireNextImageKHR(  m_device,
