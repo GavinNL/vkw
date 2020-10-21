@@ -35,5 +35,18 @@ target_link_libraries(example_SDLWindow  CONAN_PKG::sdl2  vkw::vkw)
 add_executable( example_widget example_widget.cpp )
 target_link_libraries(example_widget  CONAN_PKG::sdl2  vkw::vkw)
 
+
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_package(Qt5 COMPONENTS Widgets REQUIRED)
+
+add_executable( example_widget_qt example_widget_qt.cpp )
+target_link_libraries(example_widget_qt  Qt5::Widgets pthread  vkw::vkw)
+
 ################################################################################
 

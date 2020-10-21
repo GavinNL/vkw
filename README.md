@@ -2,7 +2,7 @@
 
 This is a simple quick implementation to set up a Vulkan Window using SDL.
 
-The feature list is not exhaustive and there are few options. 
+The feature list is not exhaustive and there are few options.
 
 This was tested on Linux Mint 20, although I'm sure the code will work on Windows with few changes. If you discover any issues in windows, please do send merge requests.
 
@@ -38,7 +38,7 @@ int main()
     // This needs to be called first to initialize SDL
     SDL_Init(SDL_INIT_EVERYTHING);
 
-    // create a default window and initialize 
+    // create a default window and initialize
     auto window = new SDLVulkanWindow();
 
     // 1. create the window
@@ -136,11 +136,11 @@ public:
     }
     void initSwapChainResources() override
     {
-        
+
     }
     void releaseSwapChainResources() override
     {
-        
+
     }
     void render(Frame &frame) override
     {
@@ -182,7 +182,15 @@ int main()
     vulkanWindow.create(c);
 
     MyApplication app;
-    vulkanWindow.exec(&app);
+
+    // put the window in the main loop
+    // and provide a callback function for the SDL events
+    vulkanWindow.exec(&app,
+                      [&app](SDL_Event const & evt)
+    {
+        if( evt.type == SDL_QUIT)
+            app.quit();
+    });
 
     vulkanWindow.destroy();
     SDL_Quit();
@@ -239,5 +247,3 @@ int main(int argc, char *argv[])
 }
 
 ```
-
-
