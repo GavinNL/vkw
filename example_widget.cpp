@@ -36,6 +36,7 @@ public:
     void releaseSwapChainResources(){}
     void render(Frame &frame)
     {
+        assert( frame.depthImage != VK_NULL_HANDLE);
         frame.beginRenderPass( frame.commandBuffer );
 
         frame.endRenderPass(frame.commandBuffer);
@@ -55,11 +56,11 @@ int main()
     SDLVulkanWidget3 vulkanWindow;
 
     SDLVulkanWidget3::CreateInfo c;
-    c.width = 1024;
-    c.height = 768;
-    c.windowTitle = "title";
+    c.width       = 1024;
+    c.height      = 768;
+    c.windowTitle = "My Vulkan Application Window";
     c.depthFormat = VK_FORMAT_D32_SFLOAT_S8_UINT;
-    c.callback = &VulkanReportFunc;
+    c.callback    = &VulkanReportFunc;
 
 
     // create the window and initialize

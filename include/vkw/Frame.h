@@ -6,28 +6,28 @@
 struct Frame
 {
     uint32_t         swapchainIndex;
-    VkCommandBuffer  commandBuffer; // the command buffer to record. THis buffer is automatically reset
-                                    //  when acquireFrame() is called. If you need more command buffers
-                                    //  you can allocate it from the commandPool. You will need
-                                    //  to manage these extra buffers yourself.
+    VkCommandBuffer  commandBuffer = VK_NULL_HANDLE; // the command buffer to record. THis buffer is automatically reset
+                                                     //  when acquireFrame() is called. If you need more command buffers
+                                                     //  you can allocate it from the commandPool. You will need
+                                                     //  to manage these extra buffers yourself.
 
-    VkCommandPool    commandPool;   // The command pool for this frame. Do not RESET this pool
-    VkFramebuffer    framebuffer;
-    VkRenderPass     renderPass;
-    VkImage          swapchainImage;
-    VkImageView      swapchainImageView;
-    VkFormat         swapchainFormat;
+    VkCommandPool    commandPool         = VK_NULL_HANDLE;   // The command pool for this frame. Do not RESET this pool
+    VkFramebuffer    framebuffer         = VK_NULL_HANDLE;
+    VkRenderPass     renderPass          = VK_NULL_HANDLE;
+    VkImage          swapchainImage      = VK_NULL_HANDLE;
+    VkImageView      swapchainImageView  = VK_NULL_HANDLE;
+    VkFormat         swapchainFormat     = VK_FORMAT_UNDEFINED;
 
     VkExtent2D       swapchainSize;
-    VkImage          depthImage;
-    VkImageView      depthImageView;
-    VkFormat         depthFormat;
+    VkImage          depthImage = VK_NULL_HANDLE;
+    VkImageView      depthImageView = VK_NULL_HANDLE;
+    VkFormat         depthFormat = VK_FORMAT_UNDEFINED;
 
-    VkSemaphore      imageAvailableSemaphore; // the semaphore you have to wait on.
-    VkSemaphore      renderCompleteSemaphore; // the semaphore you have to trigger when you have
+    VkSemaphore      imageAvailableSemaphore = VK_NULL_HANDLE; // the semaphore you have to wait on.
+    VkSemaphore      renderCompleteSemaphore = VK_NULL_HANDLE; // the semaphore you have to trigger when you have
                                               //   submitted your last command buffer.
 
-    VkFence          fence;                   // the fence you should trigger when submitting this frame
+    VkFence          fence = VK_NULL_HANDLE;                   // the fence you should trigger when submitting this frame
 
     VkClearColorValue        clearColor;
     VkClearDepthStencilValue clearDepth;
