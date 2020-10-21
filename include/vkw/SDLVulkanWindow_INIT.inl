@@ -240,6 +240,11 @@ void SDLVulkanWindow::_createPerFrameObjects()
 
 SDLVulkanWindow::~SDLVulkanWindow()
 {
+    destroy();
+}
+
+void SDLVulkanWindow::destroy()
+{
     for(auto & f : m_fences)
     {
         vkDestroyFence(m_device, f, nullptr);
