@@ -71,7 +71,15 @@ int main()
 
 
     MyApplication app;
-    vulkanWindow.exec(&app);
+
+    // put the window in the main loop
+    // and provide a callback function for the SDL events
+    vulkanWindow.exec(&app,
+                      [&app](SDL_Event const & evt)
+    {
+        if( evt.type == SDL_QUIT)
+            app.quit();
+    });
 
     vulkanWindow.destroy();
     SDL_Quit();
