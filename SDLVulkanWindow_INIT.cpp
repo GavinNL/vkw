@@ -183,7 +183,7 @@ void SDLVulkanWindow::_createPerFrameObjects()
         VkCommandPoolCreateInfo cmdC = {};
         cmdC.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         cmdC.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-        cmdC.queueFamilyIndex = m_graphicsQueueIndex;
+        cmdC.queueFamilyIndex = static_cast< decltype(cmdC.queueFamilyIndex)>(m_graphicsQueueIndex);
 
         if( VkResult::VK_SUCCESS != vkCreateCommandPool(m_device, &cmdC, nullptr, &m_commandPools[i]) )
         {
@@ -320,6 +320,7 @@ static VkBool32 getSupportedDepthFormat(VkPhysicalDevice physicalDevice, VkForma
 
 void SDLVulkanWindow::_createFramebuffers()
 {
+    (void)getSupportedDepthFormat;
     m_swapchainFrameBuffers.resize(m_swapchainImageViews.size());
 
     for (size_t i = 0; i < m_swapchainImageViews.size(); i++)
@@ -452,14 +453,14 @@ void SDLVulkanWindow::_createDepthStencil()
 std::pair<VkImage, VkDeviceMemory> SDLVulkanWindow::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
                         VkImageUsageFlags usage, VkMemoryPropertyFlags properties)
 {
-    auto findMemoryType = [this](uint32_t typeFilter, VkMemoryPropertyFlags properties)
+    auto findMemoryType = [this](uint32_t typeFilter, VkMemoryPropertyFlags props)
     {
         VkPhysicalDeviceMemoryProperties memProperties;
         vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &memProperties);
 
         for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
         {
-            if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
+            if ((typeFilter & (1u << i)) && (memProperties.memoryTypes[i].propertyFlags & props) == props)
             {
                 return i;
             }
@@ -566,13 +567,16 @@ void SDLVulkanWindow::_createSwapchain(uint32_t additionalImages=1)
         throw std::runtime_error("surfaceFormats[0].format != VK_FORMAT_B8G8R8A8_UNORM");
         }
 
-    auto CLAMP = [](int v, int m, int M)
+    auto CLAMP = [](uint32_t v, uint32_t m, uint32_t M)
     {
         return std::max( std::min(v, M), m);
     };
     m_surfaceFormat = surfaceFormats[0];
-    int width,height = 0;
-    SDL_Vulkan_GetDrawableSize(m_window, &width, &height);
+    uint32_t width,height = 0;
+    int32_t  iwidth,iheight = 0;
+    SDL_Vulkan_GetDrawableSize(m_window, &iwidth, &iheight);
+    width = static_cast<uint32_t>(iwidth);
+    height = static_cast<uint32_t>(iheight);
     width  = CLAMP(width,  m_surfaceCapabilities.minImageExtent.width , m_surfaceCapabilities.maxImageExtent.width);
     height = CLAMP(height, m_surfaceCapabilities.minImageExtent.height, m_surfaceCapabilities.maxImageExtent.height);
     m_swapchainSize.width  = width;
@@ -685,7 +689,7 @@ VkDevice SDLVulkanWindow::_createDevice()
     set<uint32_t> uniqueQueueFamilies = { static_cast<uint32_t>(m_graphicsQueueIndex), static_cast<uint32_t>(m_presentQueueIndex) };
 
     float queuePriority = queue_priority[0];
-    for(int queueFamily : uniqueQueueFamilies)
+    for(auto queueFamily : uniqueQueueFamilies)
     {
         VkDeviceQueueCreateInfo queueCreateInfo = {};
         queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -697,7 +701,7 @@ VkDevice SDLVulkanWindow::_createDevice()
 
     VkDeviceQueueCreateInfo queueCreateInfo = {};
     queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex = m_graphicsQueueIndex;
+    queueCreateInfo.queueFamilyIndex = static_cast<uint32_t>(m_graphicsQueueIndex);
     queueCreateInfo.queueCount = 1;
     queueCreateInfo.pQueuePriorities = &queuePriority;
 
@@ -718,17 +722,17 @@ VkDevice SDLVulkanWindow::_createDevice()
     VkDeviceCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     createInfo.pQueueCreateInfos = &queueCreateInfo;
-    createInfo.queueCreateInfoCount = queueCreateInfos.size();
+    createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
     createInfo.pEnabledFeatures = &deviceFeatures;
-    createInfo.enabledExtensionCount = deviceExtensions.size();
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
     createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
     std::vector<const char*> validationLayers;//
     for(auto &x : m_initInfo.enabledLayers)
         validationLayers.push_back(x.data());
 
-    createInfo.enabledLayerCount   = validationLayers.size();
+    createInfo.enabledLayerCount   = static_cast<uint32_t>(validationLayers.size());
     createInfo.ppEnabledLayerNames = validationLayers.data();
 
     if( VkResult::VK_SUCCESS != vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device) )
@@ -736,8 +740,8 @@ VkDevice SDLVulkanWindow::_createDevice()
         throw std::runtime_error("Failed to create device");
     }
 
-    vkGetDeviceQueue(m_device, m_graphicsQueueIndex, 0, &m_graphicsQueue);
-    vkGetDeviceQueue(m_device, m_presentQueueIndex, 0, &m_presentQueue);
+    vkGetDeviceQueue(m_device, static_cast<uint32_t>(m_graphicsQueueIndex), 0, &m_graphicsQueue);
+    vkGetDeviceQueue(m_device, static_cast<uint32_t>(m_presentQueueIndex ), 0, &m_presentQueue);
     return  m_device;
 }
 
@@ -766,7 +770,7 @@ void SDLVulkanWindow::_selectQueueFamily()
         }
 
         VkBool32 presentSupport = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(physical_devices, i, surface, &presentSupport);
+        vkGetPhysicalDeviceSurfaceSupportKHR(physical_devices, static_cast<uint32_t>(i), surface, &presentSupport);
         if(queueFamily.queueCount > 0 && presentSupport)
         {
             presentIndex = i;
@@ -828,9 +832,9 @@ VkInstance SDLVulkanWindow::_createInstance()
     VkInstanceCreateInfo instanceCreateInfo = {};
     instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instanceCreateInfo.pApplicationInfo = &appInfo;
-    instanceCreateInfo.enabledLayerCount = validationLayers.size();
+    instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
     instanceCreateInfo.ppEnabledLayerNames = validationLayers.data();
-    instanceCreateInfo.enabledExtensionCount = extensionNames.size();
+    instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(extensionNames.size());
     instanceCreateInfo.ppEnabledExtensionNames = extensionNames.data();
 
     VkInstance instance;
