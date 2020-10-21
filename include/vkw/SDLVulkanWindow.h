@@ -117,7 +117,7 @@ class SDLVulkanWindow
 
     void rebuildSwapchain()
     {
-        _destroySwapchain();
+        _destroySwapchain(false);
         _createSwapchain(m_additionalImages);
     }
 
@@ -171,7 +171,7 @@ protected:
         void _selectQueueFamily();
         VkDevice _createDevice();
         void _createSwapchain(uint32_t additionalImages);
-        void _destroySwapchain();
+        void _destroySwapchain(bool destroyRenderpass);
         void _createDebug();
 
         std::pair<VkImage, VkDeviceMemory> createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties);

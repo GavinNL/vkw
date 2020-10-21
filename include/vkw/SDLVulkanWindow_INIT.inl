@@ -92,12 +92,15 @@ std::vector<std::string> SDLVulkanWindow::getAvailableVulkanLayers()
     return outLayers;
 }
 
-void SDLVulkanWindow::_destroySwapchain()
+void SDLVulkanWindow::_destroySwapchain(bool destroyRenderPass)
 {
     if( m_renderPass != VK_NULL_HANDLE)
     {
-        vkDestroyRenderPass(m_device, m_renderPass, nullptr);
-        m_renderPass = VK_NULL_HANDLE;
+        if( destroyRenderPass)
+        {
+            vkDestroyRenderPass(m_device, m_renderPass, nullptr);
+            m_renderPass = VK_NULL_HANDLE;
+        }
     }
 
     if( m_depthStencil != VK_NULL_HANDLE)
@@ -106,7 +109,6 @@ void SDLVulkanWindow::_destroySwapchain()
         vkDestroyImage(m_device, m_depthStencil, nullptr);
         vkFreeMemory(m_device,m_depthStencilImageMemory,nullptr);
 
-        m_depthFormat = VK_FORMAT_UNDEFINED;
         m_depthStencil = VK_NULL_HANDLE;
         m_depthStencilImageView = VK_NULL_HANDLE;
         m_depthStencilImageMemory = VK_NULL_HANDLE;
@@ -269,7 +271,7 @@ void SDLVulkanWindow::destroy()
     }
     m_commandPools.clear();
 
-    _destroySwapchain();
+    _destroySwapchain(true);
 
     if( m_device )
     {
@@ -453,6 +455,7 @@ void SDLVulkanWindow::_createDepthStencil()
             throw std::runtime_error("failed to create swapchain image view!");
         }
     }
+
 }
 
 std::pair<VkImage, VkDeviceMemory> SDLVulkanWindow::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
@@ -655,7 +658,8 @@ void SDLVulkanWindow::_createSwapchain(uint32_t additionalImages=1)
 
 
     _createDepthStencil();
-    _createRenderPass();
+    if( m_renderPass == VK_NULL_HANDLE)
+        _createRenderPass();
     _createFramebuffers();
 
     if(m_frames.size() == 0)
