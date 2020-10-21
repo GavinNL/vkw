@@ -20,8 +20,6 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanReportFunc(
 
 class MyApplication : public Application
 {
-
-
     // Application interface
 public:
     void initResources()
@@ -30,10 +28,15 @@ public:
     }
     void releaseResources()
     {
+    }
+    void initSwapChainResources()
+    {
 
     }
-    void initSwapChainResources(){}
-    void releaseSwapChainResources(){}
+    void releaseSwapChainResources()
+    {
+
+    }
     void render(Frame &frame)
     {
         assert( frame.depthImage != VK_NULL_HANDLE);
