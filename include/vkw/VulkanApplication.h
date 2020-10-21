@@ -190,6 +190,7 @@ protected:
     friend class SDLVulkanWidget2;
     friend class QtVulkanWidget2;
     friend class SDLVulkanWidget3;
+    friend class QTRenderer;
 
 };
 
