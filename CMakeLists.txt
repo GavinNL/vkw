@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 
-project( SDLVulkanWindow LANGUAGES CXX)
+project( vkw LANGUAGES CXX)
 
 # Needed for vulkan
 find_package(Vulkan)
