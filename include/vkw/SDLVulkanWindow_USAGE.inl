@@ -6,7 +6,8 @@
 #include <stdexcept>
 #include <set>
 
-
+namespace vkw
+{
 Frame SDLVulkanWindow::acquireNextFrame()
 {
     uint32_t frameIndex;
@@ -73,4 +74,5 @@ void SDLVulkanWindow::presentFrame(Frame F)
 void SDLVulkanWindow::waitForPresent()
 {
     vkQueueWaitIdle(m_presentQueue);
+}
 }

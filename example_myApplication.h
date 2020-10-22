@@ -5,7 +5,7 @@
 #include <vkw/VulkanApplication.h>
 #include <iostream>
 
-class MyApplication : public Application
+class MyApplication : public vkw::Application
 {
     // Application interface
 public:
@@ -25,7 +25,7 @@ public:
     {
         std::cout << "rs " << std::endl;
     }
-    void render(Frame &frame) override
+    void render( vkw::Frame &frame) override
     {
         assert( frame.depthImage != VK_NULL_HANDLE);
 

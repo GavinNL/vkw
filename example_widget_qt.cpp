@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 
     // create a QtVulkanWidget and
     // set the vulkan instance
-    QtVulkanWidget2 * vulkanWindow = new QtVulkanWidget2();
+    vkw::QtVulkanWidget2 * vulkanWindow = new vkw::QtVulkanWidget2();
     vulkanWindow->setVulkanInstance(&inst);
 
     // create a wrapper for the vulkanWindow

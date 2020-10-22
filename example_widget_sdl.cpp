@@ -32,12 +32,12 @@ int main()
     SDL_Init(SDL_INIT_EVERYTHING);
 
     // create a vulkan window widget
-    SDLVulkanWidget3 vulkanWindow;
+    vkw::SDLVulkanWidget3 vulkanWindow;
 
     // set the initial properties of the
     // window. Also specify that we want
     // a depth stencil attachment
-    SDLVulkanWidget3::CreateInfo c;
+    vkw::SDLVulkanWidget3::CreateInfo c;
     c.width       = 1024;
     c.height      = 768;
     c.windowTitle = "My Vulkan Application Window";
