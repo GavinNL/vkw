@@ -145,7 +145,7 @@ protected:
     QVulkanWindow               *m_window;
     vkw::Application            *m_application = nullptr;
     bool                         m_SystemCreated=false;
-    friend class QtVulkanWidget2;
+    friend class QtVulkanWidget;
 };
 
 
@@ -162,7 +162,7 @@ protected:
  *
  *
  */
-class QtVulkanWidget2 : public QVulkanWindow
+class QtVulkanWidget : public QVulkanWindow
 {
   //  Q_OBJECT
 

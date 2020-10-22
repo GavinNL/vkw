@@ -23,7 +23,7 @@ namespace vkw {
  * so that they can be used interchangeably without
  * much modification.
  */
-class SDLVulkanWidget3 : public SDLVulkanWindow
+class SDLVulkanWidget : public SDLVulkanWindow
 {
 public:
     struct CreateInfo  : public InitilizationInfo,
@@ -34,7 +34,7 @@ public:
         uint32_t height;
     };
 
-    ~SDLVulkanWidget3()
+    ~SDLVulkanWidget()
     {
     }
 

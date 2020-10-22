@@ -116,7 +116,9 @@ int main()
 
 ## Using the Application Widget
 
-The application widget is a virtual class which allows you to write your vulkan rendering code. And then use one of the window manager widgets (SDL/Qt)
+The application widget is a virtual class which allows you to write your vulkan
+rendering code. And then use one of the window manager widgets (SDL/Qt)
+provide the main rendering loop.
 
 ```c++
 
@@ -124,26 +126,37 @@ The application widget is a virtual class which allows you to write your vulkan 
 
 class MyApplication : public Application
 {
-    // Application interface
-public:
+  public:
+
     void initResources() override
     {
-        // initialization function
+      // called once at the start. Use this to
+      // allocate any resources you might need.
+
     }
     void releaseResources() override
     {
-        // clean up function
+       // called when the window is closed
+       // use this to free your resources.
     }
+
     void initSwapChainResources() override
     {
-
+        // this is called when the swap chain has changed size
+        // use this to alllocate any resources that might depend on the  
+        // swapchain images.
     }
     void releaseSwapChainResources() override
     {
-
+        // called when the swapchain has changed size. Use this to free
+        // any resources you have allocated in initSwapChainResources()
     }
+
     void render(Frame &frame) override
     {
+        // the main rendering loop.
+        // frame contains most of the information you would need
+
         frame.beginRenderPass( frame.commandBuffer );
 
         frame.endRenderPass(frame.commandBuffer);
@@ -205,6 +218,8 @@ Using the Qt Wiget is a little more involved. You will need Qt 5.15
 
 ```c++
 
+#include <vkw/QtVulkanWidget.h>
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
@@ -218,7 +233,7 @@ int main(int argc, char *argv[])
 
     QVulkanInstance inst;
 
-    inst.setLayers(QByteArrayList() << "VK_LAYER_LUNARG_standard_validation");
+    inst.setLayers(QByteArrayList() << VK_LAYER_LUNARG_standard_validation");
 
     if (!inst.create())
         qFatal("Failed to create Vulkan instance: %d", inst.errorCode());
@@ -226,22 +241,33 @@ int main(int argc, char *argv[])
     //=============================================================
     // This the main VulkanWidget
     //=============================================================
-    // This is the widget that can be added to a QtWindow or any other
-    // widget. The actual  Applicatioof the application
-    vka::QtVulkanWidget2 * vulkanWindow = new vka::QtVulkanWidget2();
-
-    // create an instance of the application
-    MyApp * myApp = new MyApp();
-
-
+    // create a QtVulkanWidget and
+    // set the vulkan instance
+    vkw::QtVulkanWidget * vulkanWindow = new vkw::QtVulkanWidget();
     vulkanWindow->setVulkanInstance(&inst);
+
+    // create a wrapper for the vulkanWindow
+    QWidget * wrapper = QWidget::createWindowContainer(vulkanWindow);
+
+    // Create an instance of our application.
+    // this is the actual app that will be
+    // performing all the rendering
+    MyApplication * myApp = new MyApplication();
+
     vulkanWindow->init( myApp );
 
-    // or we can add it to another widget;
-    MainWindow mainWindow(vulkanWindow, messageLogWidget.data());
+    auto l = new QHBoxLayout();
 
-    mainWindow.resize(1024, 768);
-    mainWindow.show();
+    auto centralWidget = new QWidget();
+    centralWidget->setLayout(l);
+
+    m_window->setCentralWidget(centralWidget);
+
+        l->addWidget(wrapper, 5);
+        l->addWidget(new QPushButton(m_window), 1);
+
+    m_window->resize(1024,768);
+    m_window->show();
 
     return app.exec();
 }
