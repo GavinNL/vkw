@@ -32,8 +32,8 @@ target_link_libraries( vkw INTERFACE Vulkan::Vulkan)
 add_executable( example_SDLWindow example_SDLWindow.cpp )
 target_link_libraries(example_SDLWindow  CONAN_PKG::sdl2  vkw::vkw)
 
-add_executable( example_widget example_widget.cpp )
-target_link_libraries(example_widget  CONAN_PKG::sdl2  vkw::vkw)
+add_executable( example_widget_sdl example_widget_sdl.cpp )
+target_link_libraries(example_widget_sdl  CONAN_PKG::sdl2  vkw::vkw)
 
 
 set(CMAKE_AUTOUIC ON)
