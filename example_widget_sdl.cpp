@@ -18,37 +18,13 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanReportFunc(
 }
 
 
-class MyApplication : public Application
-{
-    // Application interface
-public:
-    void initResources()
-    {
+// This header file contains the actual
+// rendering code for vulkan. It can be used
+// by both the SDLWidget and the Qt widget.
+// see example_widget_sdl.cpp
+// and example_widget_qt.cpp
+#include "example_myApplication.h"
 
-    }
-    void releaseResources()
-    {
-    }
-    void initSwapChainResources()
-    {
-
-    }
-    void releaseSwapChainResources()
-    {
-
-    }
-    void render(Frame &frame)
-    {
-        assert( frame.depthImage != VK_NULL_HANDLE);
-        frame.beginRenderPass( frame.commandBuffer );
-
-        frame.endRenderPass(frame.commandBuffer);
-
-        // request the next frame
-        // so that this function will be called again
-        requestNextFrame();
-    }
-};
 
 int main()
 {
@@ -58,6 +34,9 @@ int main()
     // create a vulkan window widget
     SDLVulkanWidget3 vulkanWindow;
 
+    // set the initial properties of the
+    // window. Also specify that we want
+    // a depth stencil attachment
     SDLVulkanWidget3::CreateInfo c;
     c.width       = 1024;
     c.height      = 768;

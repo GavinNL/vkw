@@ -79,6 +79,13 @@ class QTRenderer : public QVulkanWindowRenderer
         _frame.commandBuffer      = m_window->currentCommandBuffer();
 
 
+        _frame.clearColor.float32[0] = 1.0f;
+        _frame.clearColor.float32[1] = 1.0f;
+        _frame.clearColor.float32[2] = 1.0f;
+        _frame.clearColor.float32[3] = 1.0f;
+
+        _frame.clearDepth.depth = 1.0f;
+        _frame.clearDepth.stencil = 0;
         m_application->m_renderNextFrame = false;
         m_application->render(_frame);
 
