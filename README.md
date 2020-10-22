@@ -19,9 +19,13 @@ cd SDLVulkanWindow
 mkdir build && cd build
 
 # run the conan install to get the SDL dependency
+# this is only needed for the examples
 conan install .. -s compiler.libcxx=libstdc++11
 
-cmake ..
+# Run cmake and point the cmake prefix path to the location
+# where Qt 5.15 is located. This is only needed
+# for buliding the examples.
+cmake .. -DCMAKE_PREFIX_PATH=/path/to/Qt5.14
 
 make
 ```
@@ -29,6 +33,8 @@ make
 
 ## Quick Start Code
 
+The following snippet shows how to use the `vkw::SDLVulkanWindow`
+in its raw form.
 
 ```C++
 #include <vkw/SDLVulkanWindow.h>
@@ -106,7 +112,8 @@ int main()
     return 0;
 }
 
-// inline implementations
+// inline implementations for SDL
+// only need to include this in one cpp file
 #include <vkw/SDLVulkanWindow_INIT.inl>
 #include <vkw/SDLVulkanWindow_USAGE.inl>
 
@@ -209,6 +216,12 @@ int main()
     SDL_Quit();
     return 0;
 }
+
+// inline implementations for SDL
+// only need to include this in one cpp file
+#include <vkw/SDLVulkanWindow_INIT.inl>
+#include <vkw/SDLVulkanWindow_USAGE.inl>
+
 ```
 
 
