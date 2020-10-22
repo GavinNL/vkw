@@ -8,6 +8,8 @@
 #include <string>
 #include "Frame.h"
 
+namespace vkw
+{
 class SDLVulkanWindow
 {
     public:
@@ -186,5 +188,5 @@ protected:
 
         void _createPerFrameObjects();
 };
-
+}
 #endif

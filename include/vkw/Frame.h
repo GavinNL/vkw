@@ -3,6 +3,8 @@
 
 #include <vulkan/vulkan.h>
 
+namespace vkw
+{
 struct Frame
 {
     uint32_t         swapchainIndex;
@@ -68,6 +70,6 @@ struct Frame
         vkCmdEndRenderPass(cmd);
     }
 };
-
+}
 
 #endif

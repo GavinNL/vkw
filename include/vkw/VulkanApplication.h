@@ -6,6 +6,8 @@
 #include <string>
 #include "Frame.h"
 
+namespace vkw
+{
 class Application
 {
 public:
@@ -193,6 +195,6 @@ protected:
     friend class QTRenderer;
 
 };
-
+}
 
 #endif

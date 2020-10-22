@@ -12,6 +12,9 @@
 #include <iostream>
 #include <thread>
 
+namespace vkw {
+
+
 /**
  * @brief The SDLVulkanWidget struct
  *
@@ -169,7 +172,7 @@ public:
     }
 };
 
-
+}
 
 #endif
 

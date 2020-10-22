@@ -6,6 +6,8 @@
 #include <stdexcept>
 #include <set>
 
+namespace vkw
+{
 void SDLVulkanWindow::createVulkanInstance(InitilizationInfo info)
 {
     m_initInfo = info;
@@ -853,4 +855,4 @@ VkInstance SDLVulkanWindow::_createInstance()
     }
     return instance;
 }
-
+}

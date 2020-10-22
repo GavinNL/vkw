@@ -13,6 +13,8 @@
 
 #include "VulkanApplication.h"
 
+namespace vkw {
+
 
 /**
  * @brief The QTRenderer struct
@@ -141,7 +143,7 @@ class QTRenderer : public QVulkanWindowRenderer
 
 protected:
     QVulkanWindow               *m_window;
-    Application                 *m_application = nullptr;
+    vkw::Application            *m_application = nullptr;
     bool                         m_SystemCreated=false;
     friend class QtVulkanWidget2;
 };
@@ -344,5 +346,6 @@ protected:
 
 };
 
+}
 
 #endif
