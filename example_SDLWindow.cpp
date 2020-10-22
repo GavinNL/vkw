@@ -1,5 +1,5 @@
 #include <iostream>
-#include "SDLVulkanWindow.h"
+#include <vkw/SDLVulkanWindow.h>
 
 // callback function for validation layers
 static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanReportFunc(
@@ -24,13 +24,13 @@ int main()
 
     // create a default window and initialize all vulkan
     // objects.
-    auto window = new SDLVulkanWindow();
+    auto window = new vkw::SDLVulkanWindow();
 
     // 1. create the window
     window->createWindow("Title", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024,768);
 
     // 2. initialize the vulkan instance
-    SDLVulkanWindow::InitilizationInfo info;
+    vkw::SDLVulkanWindow::InitilizationInfo info;
 
     info.callback = VulkanReportFunc;
     // info.enabledLayers.clear();     // clear the default layers/extensions if you do not want them.
@@ -57,7 +57,7 @@ int main()
     // 3. Create the following objects:
     //    instance, physical device, device, graphics/present queues,
     //    swap chain, depth buffer, render pass and framebuffers
-    SDLVulkanWindow::SurfaceInitilizationInfo surfaceInfo;
+    vkw::SDLVulkanWindow::SurfaceInitilizationInfo surfaceInfo;
 
     //surfaceInfo.depthFormat = VkFormat::VK_FORMAT_UNDEFINED; // set to undefined to disable depth image creation
     surfaceInfo.additionalImageCount = 1; // create one additional image in the swap chain for triple buffering.
@@ -124,3 +124,5 @@ int main()
     return 0;
 }
 
+#include <vkw/SDLVulkanWindow_INIT.inl>
+#include <vkw/SDLVulkanWindow_USAGE.inl>

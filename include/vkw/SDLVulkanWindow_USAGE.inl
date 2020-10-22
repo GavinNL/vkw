@@ -6,8 +6,9 @@
 #include <stdexcept>
 #include <set>
 
-
-SDLVulkanWindow::Frame SDLVulkanWindow::acquireNextFrame()
+namespace vkw
+{
+Frame SDLVulkanWindow::acquireNextFrame()
 {
     uint32_t frameIndex;
     vkAcquireNextImageKHR(  m_device,
@@ -73,4 +74,5 @@ void SDLVulkanWindow::presentFrame(Frame F)
 void SDLVulkanWindow::waitForPresent()
 {
     vkQueueWaitIdle(m_presentQueue);
+}
 }
