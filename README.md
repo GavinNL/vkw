@@ -225,9 +225,9 @@ int main()
 ```
 
 
-### Using the Qt Wiget
+### Using the Qt Widget
 
-Using the Qt Wiget is a little more involved. You will need Qt 5.15
+Using the Qt Widget is a little more involved. You will need Qt 5.15
 
 ```c++
 
