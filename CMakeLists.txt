@@ -17,11 +17,11 @@ target_include_directories(vkw INTERFACE include)
 target_link_libraries( vkw INTERFACE Vulkan::Vulkan)
 ################################################################################
 
-get_directory_property(_vka_has_parent PARENT_DIRECTORY)
+get_directory_property(vkw_has_parent PARENT_DIRECTORY)
 
 option(VKW_BUILD_EXAMPLES "Build examples" ON)
 
-if(_vka_has_parent)
+if(vkw_has_parent)
 
     message("Not building examples")
     set(VKW_BUILD_EXAMPLES OFF)

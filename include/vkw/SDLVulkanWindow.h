@@ -1,5 +1,5 @@
-#ifndef SDL_VULKAN_WINDOW_H
-#define SDL_VULKAN_WINDOW_H
+#ifndef VKW_SDL_VULKAN_WINDOW_H
+#define VKW_SDL_VULKAN_WINDOW_H
 
 #include <vulkan/vulkan.h>
 
