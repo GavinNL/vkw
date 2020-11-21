@@ -1,5 +1,5 @@
-#ifndef VKA_QT_VULKAN_WIDGET_H
-#define VKA_QT_VULKAN_WIDGET_H
+#ifndef VKW_QT_VULKAN_WIDGET_H
+#define VKW_QT_VULKAN_WIDGET_H
 
 #include <QVulkanWindow>
 #include <QWidget>

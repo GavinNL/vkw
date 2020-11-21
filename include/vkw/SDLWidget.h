@@ -1,5 +1,5 @@
-#ifndef QT_SDL_WIDGET3_H
-#define QT_SDL_WIDGET3_H
+#ifndef VKW_QT_SDL_WIDGET3_H
+#define VKW_QT_SDL_WIDGET3_H
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_vulkan.h>
@@ -175,4 +175,3 @@ public:
 }
 
 #endif
-

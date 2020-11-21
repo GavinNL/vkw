@@ -1,5 +1,5 @@
-#ifndef SDLQT_VULKANAPPLICATION_H
-#define SDLQT_VULKANAPPLICATION_H
+#ifndef VKW_SDLQT_VULKANAPPLICATION_H
+#define VKW_SDLQT_VULKANAPPLICATION_H
 
 #include <vulkan/vulkan.h>
 #include <vector>
