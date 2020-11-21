@@ -139,12 +139,20 @@ class MyApplication : public Application
     {
       // called once at the start. Use this to
       // allocate any resources you might need.
+      // The following can be used here
+      // getDevice();
+      // getPhysicalDevice();
+      // getInstance();
 
     }
     void releaseResources() override
     {
        // called when the window is closed
        // use this to free your resources.
+       // The following can be used here
+       // getDevice();
+       // getPhysicalDevice();
+       // getInstance();
     }
 
     void initSwapChainResources() override
@@ -152,6 +160,13 @@ class MyApplication : public Application
         // this is called when the swap chain has changed size
         // use this to alllocate any resources that might depend on the  
         // swapchain images.
+        // The following can be used here
+        // swapchainImageCount();
+        // swapchainImage( index );
+        // colorFormat();
+        // depthStencilFormat();
+        // swapchainImageSize();
+        // swapchainImageView();
     }
     void releaseSwapChainResources() override
     {

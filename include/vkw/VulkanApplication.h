@@ -145,6 +145,19 @@ public:
     {
         return m_swapchainImageViews.at(indx);
     }
+    VkDevice getDevice() const
+    {
+        return m_device;
+    }
+    VkPhysicalDevice getPhysicalDevice() const
+    {
+        return m_physicalDevice;
+    }
+    VkInstance getInstance() const
+    {
+        return m_instance;
+    }
+
     //=========================================================================
 
 
