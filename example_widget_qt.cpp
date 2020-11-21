@@ -35,6 +35,47 @@ static void messageHandler(QtMsgType msgType, const QMessageLogContext &logConte
 #include "example_myApplication.h"
 
 
+// to be able to get input events, you need to
+// inherit from the vkw::QtVulkanWidget class
+class MyQtVulkanWindow : public vkw::QtVulkanWidget
+{
+    void mousePressEvent(QMouseEvent * e) override
+    {
+
+    }
+
+    void mouseReleaseEvent(QMouseEvent * e) override
+    {
+
+    }
+
+    void mouseDoubleClickEvent(QMouseEvent * e) override
+    {
+
+    }
+
+    void mouseMoveEvent(QMouseEvent * e) override
+    {
+
+    }
+
+    void keyPressEvent(QKeyEvent * e)       override
+    {
+
+    }
+
+    void keyReleaseEvent(QKeyEvent * e)     override
+    {
+
+
+    }
+
+    void wheelEvent(QWheelEvent * e) override
+    {
+
+    }
+};
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
@@ -63,7 +104,7 @@ int main(int argc, char *argv[])
 
     // create a QtVulkanWidget and
     // set the vulkan instance
-    vkw::QtVulkanWidget * vulkanWindow = new vkw::QtVulkanWidget();
+    MyQtVulkanWindow * vulkanWindow = new MyQtVulkanWindow();
     vulkanWindow->setVulkanInstance(&inst);
 
     // create a wrapper for the vulkanWindow

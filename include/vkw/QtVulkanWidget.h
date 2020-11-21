@@ -175,7 +175,7 @@ public:
     }
 
     //=========================================================
-    // These two functions are needed to interact iwth
+    // These two functions are needed to interact with
     // Qt.
     //=========================================================
     QVulkanWindowRenderer* createRenderer() override
@@ -186,160 +186,11 @@ public:
         return t;
     }
     //=========================================================
-#if 0
-    void mousePressEvent(QMouseEvent * e) override
+
+    Application* getApplication()
     {
-        EvtInputMouseButton E;
-        E.x      = e->x();//event.button.x;
-        E.y      = e->y();//event.button.y;
-        switch( e->button() )
-        {
-           case Qt::NoButton         : E.button = vka::MouseButton::NONE;  break;//= 0x00000000,
-           case Qt::LeftButton       : E.button = vka::MouseButton::LEFT;  break;//= 0x00000001,
-           case Qt::RightButton      : E.button = vka::MouseButton::RIGHT;  break;//= 0x00000002,
-           //case Qt::MidButton      : E.button = ;  break;//= 0x00000004, // ### Qt 6: remove me
-           case Qt::MiddleButton     : E.button = vka::MouseButton::MIDDLE;  break;//= MidButton,
-           //case Qt::BackButton     : E.button = ;  break;//= 0x00000008,
-           case Qt::XButton1         : E.button = vka::MouseButton::X1;  break;//= BackButton,
-           //case Qt::ExtraButton1   : E.button = ;  break;//= XButton1,
-           //case Qt::ForwardButton  : E.button = ;  break;//= 0x00000010,
-           case Qt::XButton2         : E.button = vka::MouseButton::X2;  break;//= ForwardButton,
-        default:
-            E.button = vka::MouseButton::NONE;
-         break;
-        }
-        E.state =  1;//e->buttons() & e->button() ? 1 : 0;
-
-        E.clicks = 1;//event.button.clicks;
-        m_application->mousePressEvent(&E);
+        return m_application;
     }
-
-    void mouseReleaseEvent(QMouseEvent * e) override
-    {
-        EvtInputMouseButton E;
-        E.x      = e->x();//event.button.x;
-        E.y      = e->y();//event.button.y;
-        switch( e->button() )
-        {
-           case Qt::NoButton         : E.button = vka::MouseButton::NONE;  break;//= 0x00000000,
-           case Qt::LeftButton       : E.button = vka::MouseButton::LEFT;  break;//= 0x00000001,
-           case Qt::RightButton      : E.button = vka::MouseButton::RIGHT;  break;//= 0x00000002,
-           //case Qt::MidButton      : E.button = ;  break;//= 0x00000004, // ### Qt 6: remove me
-           case Qt::MiddleButton     : E.button = vka::MouseButton::MIDDLE;  break;//= MidButton,
-           //case Qt::BackButton     : E.button = ;  break;//= 0x00000008,
-           case Qt::XButton1         : E.button = vka::MouseButton::X1;  break;//= BackButton,
-           //case Qt::ExtraButton1   : E.button = ;  break;//= XButton1,
-           //case Qt::ForwardButton  : E.button = ;  break;//= 0x00000010,
-           case Qt::XButton2         : E.button = vka::MouseButton::X2;  break;//= ForwardButton,
-           default:
-               E.button = vka::MouseButton::NONE;
-            break;
-        }
-        E.state =  0;//e->buttons() & e->button() ? 1 : 0;
-
-        E.clicks = 1;//event.button.clicks;
-
-        m_application->mouseReleaseEvent(&E);
-    }
-
-    void mouseDoubleClickEvent(QMouseEvent * e) override
-    {
-        EvtInputMouseButton E;
-        E.x      = e->x();//event.button.x;
-        E.y      = e->y();//event.button.y;
-        switch( e->button() )
-        {
-           case Qt::NoButton         : E.button = vka::MouseButton::NONE;  break;//= 0x00000000,
-           case Qt::LeftButton       : E.button = vka::MouseButton::LEFT;  break;//= 0x00000001,
-           case Qt::RightButton      : E.button = vka::MouseButton::RIGHT;  break;//= 0x00000002,
-           //case Qt::MidButton      : E.button = ;  break;//= 0x00000004, // ### Qt 6: remove me
-           case Qt::MiddleButton     : E.button = vka::MouseButton::MIDDLE;  break;//= MidButton,
-           //case Qt::BackButton     : E.button = ;  break;//= 0x00000008,
-           case Qt::XButton1         : E.button = vka::MouseButton::X1;  break;//= BackButton,
-           //case Qt::ExtraButton1   : E.button = ;  break;//= XButton1,
-           //case Qt::ForwardButton  : E.button = ;  break;//= 0x00000010,
-           case Qt::XButton2         : E.button = vka::MouseButton::X2;  break;//= ForwardButton,
-           default:
-               E.button = vka::MouseButton::NONE;
-            break;
-        }
-        E.state =  0;//e->buttons() & e->button() ? 1 : 0;
-
-        E.clicks = 2;//event.button.clicks;
-
-        m_application->mouseReleaseEvent(&E);
-    }
-
-    void mouseMoveEvent(QMouseEvent * e) override
-    {
-        EvtInputMouseMotion M;
-        M.x    = e->x();//event.motion.x;
-        M.y    = e->y();//event.motion.y;
-        M.xrel = M.x - m_oldMouseX;//event.motion.xrel;
-        M.yrel = M.y - m_oldMouseY;//event.motion.yrel;
-
-        m_oldMouseX = M.x;
-        m_oldMouseY = M.y;
-        //
-        m_application->mouseMoveEvent(&M);
-    }
-
-    void keyPressEvent(QKeyEvent * e)       override
-    {
-        EvtInputKey M;
-
-        M.timestamp      = std::chrono::system_clock::now();
-        M.down           = true;
-        M.repeat         = static_cast<uint8_t>(e->count());
-        auto f    = m_QT_to_Key.find( e->key() );
-        M.keycode = KeyCode::UNKNOWN;
-        if( f != m_QT_to_Key.end() )
-           M.keycode = f->second;
-
-        M.windowKeyCode  = static_cast<uint32_t>( e->key() );
-        M.windowScanCode = static_cast<uint32_t>( e->nativeScanCode() );
-
-        M.windowEvent = e;
-
-        //std::cout << "QtScan " << M.windowScanCode << " --> vkaScan " << to_string(M.scancode) << std::endl;
-        //std::cout << "QtKey  " << M.windowKeyCode << " --> vkaKey  " << to_string(M.keycode) << std::endl;
-        //std::cout << "VulkanWidgetQt: Key: " << e->nativeVirtualKey() << "  Scan  " << e->nativeScanCode() << std::endl;
-        m_application->keyPressEvent(&M);
-
-    }
-
-    void keyReleaseEvent(QKeyEvent * e)     override
-    {
-        EvtInputKey M;
-
-        M.timestamp      = std::chrono::system_clock::now();
-        M.down           = false;
-        M.repeat         = static_cast<uint8_t>( e->count() );
-        auto f    = m_QT_to_Key.find( e->key() );
-        M.keycode = KeyCode::UNKNOWN;
-        if( f != m_QT_to_Key.end() )
-           M.keycode = f->second;
-
-        M.windowKeyCode  = static_cast<uint32_t>( e->key() );
-        M.windowScanCode = e->nativeScanCode();
-
-        M.windowEvent = e;
-
-        //std::cout << "QtScan " << M.windowScanCode << " --> vkaScan " << to_string(M.scancode) << std::endl;
-        //std::cout << "QtKey  " << M.windowKeyCode << " --> vkaKey  " << to_string(M.keycode) << std::endl;
-        //std::cout << "VulkanWidgetQt: Key: " << e->nativeVirtualKey() << "  Scan  " << e->nativeScanCode() << std::endl;
-        m_application->keyReleaseEvent(&M);
-
-    }
-
-    void wheelEvent(QWheelEvent * e) override
-    {
-        EvtInputMouseWheel E;
-        E.x = e->pixelDelta().x();
-        E.y = e->pixelDelta().y();
-        m_application->mouseWheelEvent(&E);
-    }
-#endif
 protected:
     Application * m_application = nullptr;
 

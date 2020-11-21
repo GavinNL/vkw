@@ -11,19 +11,34 @@ class MyApplication : public vkw::Application
 public:
     void initResources() override
     {
-        std::cout << "ir " << std::endl;
+        // The following can be used here
+        // getDevice();
+        // getPhysicalDevice();
+        // getInstance();
+        std::cout << "initResources() " << std::endl;
     }
     void releaseResources() override
     {
-        std::cout << "rr " << std::endl;
+        // The following can be used here
+        // getDevice();
+        // getPhysicalDevice();
+        // getInstance();
+        std::cout << "releaseResources() " << std::endl;
     }
     void initSwapChainResources() override
     {
-        std::cout << "is " << std::endl;
+        // The following can be used here
+        // swapchainImageCount();
+        // swapchainImage( index );
+        // colorFormat();
+        // depthStencilFormat();
+        // swapchainImageSize();
+        // swapchainImageView();
+        std::cout << "initSwapchainResources() " << std::endl;
     }
     void releaseSwapChainResources() override
     {
-        std::cout << "rs " << std::endl;
+        std::cout << "releaseSwapChainResources() " << std::endl;
     }
     void render( vkw::Frame &frame) override
     {
