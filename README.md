@@ -246,7 +246,7 @@ int main(int argc, char *argv[])
 
     QVulkanInstance inst;
 
-    inst.setLayers(QByteArrayList() << VK_LAYER_LUNARG_standard_validation");
+    inst.setLayers(QByteArrayList() << VK_LAYER_LUNARG_standard_validation);
 
     if (!inst.create())
         qFatal("Failed to create Vulkan instance: %d", inst.errorCode());
