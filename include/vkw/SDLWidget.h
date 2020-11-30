@@ -112,6 +112,11 @@ public:
         app->m_physicalDevice = getPhysicalDevice();
         app->m_instance       = getInstance();
 
+        app->m_graphicsQueue  = getGraphicsQueue();
+        app->m_presentQueue   = getPresentQueue();
+        app->m_graphicsQueueIndex = getGraphicsQueueIndex();
+        app->m_presentQueueIndex  = getPresentQueueIndex();
+
         _initSwapchainVars(app);
 
         app->initResources();
