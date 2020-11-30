@@ -106,6 +106,12 @@ class QTRenderer : public QVulkanWindowRenderer
         m_application->m_device            = m_window->device();
         m_application->m_physicalDevice    = m_window->physicalDevice();
         m_application->m_instance          = m_window->vulkanInstance()->vkInstance();
+
+        m_application->m_graphicsQueue      = m_window->graphicsQueue();
+        m_application->m_graphicsQueueIndex = static_cast<int32_t>(m_window->graphicsQueueFamilyIndex());
+        //m_application->m_presentQueue       = m_window->presentQ();
+        //m_application->m_presentQueueIndex  = getPresentQueueIndex();
+
         m_application->initResources();
 
     }

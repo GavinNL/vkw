@@ -61,9 +61,9 @@ if( VKW_BUILD_EXAMPLES )
 
     if (Qt5Widgets_FOUND)
 
-        if (Qt5Widgets_VERSION VERSION_LESS 5.14.0)
+        if (Qt5Widgets_VERSION VERSION_LESS 5.15.0)
 
-            message(NOTICE "Minimum supported Qt5 version is 5.14. Cannot build Qt examples!")
+            message(NOTICE "Minimum supported Qt5 version is 5.15. Cannot build Qt examples!")
 
         else()
 

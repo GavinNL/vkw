@@ -157,6 +157,14 @@ public:
     {
         return m_instance;
     }
+    VkQueue getGraphicsQueue() const
+    {
+        return m_graphicsQueue;
+    }
+    uint32_t getGraphicsQueueFamilyIndex() const
+    {
+        return static_cast<uint32_t>(m_graphicsQueueIndex);
+    }
 
     //=========================================================================
 
@@ -199,6 +207,13 @@ protected:
     VkRenderPass             m_defaultRenderPass;
     bool                     m_quit=false;
     bool                     m_renderNextFrame=true;
+
+
+    VkQueue                  m_graphicsQueue;
+    VkQueue                  m_presentQueue;
+
+    int32_t m_graphicsQueueIndex=-1;
+    int32_t m_presentQueueIndex =-1;
 
     friend class QTVulkanWidget;
     friend class SDLVulkanWidget;

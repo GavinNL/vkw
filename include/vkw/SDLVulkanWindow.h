@@ -87,9 +87,21 @@ class SDLVulkanWindow
     {
         return m_swapchain;
     }
+    int32_t getGraphicsQueueIndex() const
+    {
+        return m_graphicsQueueIndex;
+    }
     VkQueue getGraphicsQueue() const
     {
         return m_graphicsQueue;
+    }
+    int32_t getPresentQueueIndex() const
+    {
+        return m_presentQueueIndex;
+    }
+    VkQueue getPresentQueue() const
+    {
+        return m_presentQueue;
     }
     std::vector<VkImageView> getSwapchainImageViews() const
     {
