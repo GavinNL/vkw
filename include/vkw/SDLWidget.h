@@ -153,8 +153,6 @@ public:
             {
                 render(app);
             }
-
-            std::this_thread::sleep_for( std::chrono::milliseconds(16));
         }
 
         app->releaseSwapChainResources();
