@@ -120,12 +120,6 @@ int main()
     return 0;
 }
 
-// inline implementations for SDL
-// only need to include this in one cpp file
-#include <vkw/SDLVulkanWindow_INIT.inl>
-#include <vkw/SDLVulkanWindow_USAGE.inl>
-
-
 ```
 
 
@@ -212,14 +206,17 @@ int main()
     SDL_Init(SDL_INIT_EVERYTHING);
 
     // create a vulkan window widget
-    SDLVulkanWidget3 vulkanWindow;
+    vkw::SDLVulkanWidget vulkanWindow;
 
-    SDLVulkanWidget3::CreateInfo c;
+    // set the initial properties of the
+    // window. Also specify that we want
+    // a depth stencil attachment
+    vkw::SDLVulkanWidget::CreateInfo c;
     c.width       = 1024;
     c.height      = 768;
     c.windowTitle = "My Vulkan Application Window";
     c.depthFormat = VK_FORMAT_D32_SFLOAT_S8_UINT;
-    c.callback    = &VulkanReportFunc;
+    c.callback    = &VulkanReportFunc;nc;
 
     // create the window and initialize
     vulkanWindow.create(c);
@@ -239,11 +236,6 @@ int main()
     SDL_Quit();
     return 0;
 }
-
-// inline implementations for SDL
-// only need to include this in one cpp file
-#include <vkw/SDLVulkanWindow_INIT.inl>
-#include <vkw/SDLVulkanWindow_USAGE.inl>
 
 ```
 
