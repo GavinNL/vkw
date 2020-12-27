@@ -8,14 +8,22 @@ This was tested on Linux Mint 20, although I'm sure the code will work on Window
 
 ## Usage
 
-Copy the `SDLVulkanWindow.h` `SDLVulkanWindow_INIT.cpp` and `SDLVulkanWindow_USAGE.cpp` into your project folder.
+To use this library you can add the repo as a git submodule
+
+```
+# add the submodule
+add_subdirectories( third_party/vkw)
+
+# Link to the vkw target
+target_link_libraries( myapplication vkw::vkw)
+```
 
 Follow the example outline in `example.cpp` to get started.
 
 ## Build the Example
 
 ```bash
-cd SDLVulkanWindow
+cd vkw
 mkdir build && cd build
 
 # run the conan install to get the SDL dependency
@@ -25,7 +33,7 @@ conan install .. -s compiler.libcxx=libstdc++11
 # Run cmake and point the cmake prefix path to the location
 # where Qt 5.15 is located. This is only needed
 # for buliding the examples.
-cmake .. -DCMAKE_PREFIX_PATH=/path/to/Qt5.14
+cmake .. -DCMAKE_PREFIX_PATH=/path/to/Qt5.15
 
 make
 ```
