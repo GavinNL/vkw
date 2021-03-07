@@ -1,0 +1,12 @@
+version: "2"
+plugins:
+  cppcheck:
+    enabled: true
+    exclude_patterns:
+    - "build/"
+    config:
+      check: all
+      language: c++
+      stds:
+        - c++11
+
