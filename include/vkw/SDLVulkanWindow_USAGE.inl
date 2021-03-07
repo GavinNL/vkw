@@ -1,3 +1,6 @@
+#ifndef VKW_SDLVULKANWINDOW_USAGE_INL
+#define VKW_SDLVULKANWINDOW_USAGE_INL
+
 #include "SDLVulkanWindow.h"
 
 #include <SDL2/SDL_vulkan.h>
@@ -76,3 +79,4 @@ inline void SDLVulkanWindow::waitForPresent()
     vkQueueWaitIdle(m_presentQueue);
 }
 }
+#endif

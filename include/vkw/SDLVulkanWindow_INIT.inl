@@ -1,3 +1,6 @@
+#ifndef VKW_SDLVULKANWINDOW_INIT_INL
+#define VKW_SDLVULKANWINDOW_INIT_INL
+
 #include "SDLVulkanWindow.h"
 
 #include <SDL2/SDL_vulkan.h>
@@ -856,3 +859,5 @@ inline VkInstance SDLVulkanWindow::_createInstance()
     return instance;
 }
 }
+
+#endif
