@@ -1,3 +1,6 @@
+#ifndef VKW_SDLVULKANWINDOW_INIT_INL
+#define VKW_SDLVULKANWINDOW_INIT_INL
+
 #include "SDLVulkanWindow.h"
 
 #include <SDL2/SDL_vulkan.h>
@@ -8,21 +11,21 @@
 
 namespace vkw
 {
-void SDLVulkanWindow::createVulkanInstance(InitilizationInfo info)
+inline void SDLVulkanWindow::createVulkanInstance(InitilizationInfo info)
 {
     m_initInfo = info;
     m_instance = _createInstance();
     _createDebug();
 }
 
-void SDLVulkanWindow::createWindow(const char *title, int x, int y, int w,
+inline void SDLVulkanWindow::createWindow(const char *title, int x, int y, int w,
                                                       int h, Uint32 flags)
 {
     flags |= SDL_WINDOW_VULKAN;
     m_window = SDL_CreateWindow( title, x, y,w,h, flags);
 }
 
-std::vector<std::string> SDLVulkanWindow::getAvailableVulkanExtensions()
+inline std::vector<std::string> SDLVulkanWindow::getAvailableVulkanExtensions()
 {
     std::vector<std::string> outExtensions;
     // Figure out the amount of extensions vulkan needs to interface with the os windowing system
@@ -55,7 +58,7 @@ std::vector<std::string> SDLVulkanWindow::getAvailableVulkanExtensions()
     return outExtensions;
 }
 
-std::vector<std::string> SDLVulkanWindow::getAvailableVulkanLayers()
+inline std::vector<std::string> SDLVulkanWindow::getAvailableVulkanLayers()
 {
     std::vector<std::string> outLayers;
 
@@ -94,7 +97,7 @@ std::vector<std::string> SDLVulkanWindow::getAvailableVulkanLayers()
     return outLayers;
 }
 
-void SDLVulkanWindow::_destroySwapchain(bool destroyRenderPass)
+inline void SDLVulkanWindow::_destroySwapchain(bool destroyRenderPass)
 {
     if( m_renderPass != VK_NULL_HANDLE)
     {
@@ -137,7 +140,7 @@ void SDLVulkanWindow::_destroySwapchain(bool destroyRenderPass)
     }
 }
 
-void SDLVulkanWindow::initSurface( SDLVulkanWindow::SurfaceInitilizationInfo I)
+inline void SDLVulkanWindow::initSurface( SDLVulkanWindow::SurfaceInitilizationInfo I)
 {
     m_additionalImages = I.additionalImageCount;
     m_depthFormat = I.depthFormat;
@@ -174,7 +177,7 @@ void SDLVulkanWindow::initSurface( SDLVulkanWindow::SurfaceInitilizationInfo I)
 //    _createPerFrameObjects();
 //}
 
-void SDLVulkanWindow::_createPerFrameObjects()
+inline void SDLVulkanWindow::_createPerFrameObjects()
 {
     m_fences.resize( m_swapchainImages.size());
     m_renderCompleteSemaphores.resize( m_swapchainImages.size());
@@ -242,12 +245,12 @@ void SDLVulkanWindow::_createPerFrameObjects()
     }
 }
 
-SDLVulkanWindow::~SDLVulkanWindow()
+inline SDLVulkanWindow::~SDLVulkanWindow()
 {
     destroy();
 }
 
-void SDLVulkanWindow::destroy()
+inline void SDLVulkanWindow::destroy()
 {
     for(auto & f : m_fences)
     {
@@ -327,7 +330,7 @@ static VkBool32 getSupportedDepthFormat(VkPhysicalDevice physicalDevice, VkForma
         return false;
 }
 
-void SDLVulkanWindow::_createFramebuffers()
+inline void SDLVulkanWindow::_createFramebuffers()
 {
     (void)getSupportedDepthFormat;
     m_swapchainFrameBuffers.resize(m_swapchainImageViews.size());
@@ -356,7 +359,7 @@ void SDLVulkanWindow::_createFramebuffers()
     }
 }
 
-void SDLVulkanWindow::_createRenderPass()
+inline void SDLVulkanWindow::_createRenderPass()
 {
     using namespace std;
     vector<VkAttachmentDescription> attachments(1);
@@ -427,7 +430,7 @@ void SDLVulkanWindow::_createRenderPass()
         }
 }
 
-void SDLVulkanWindow::_createDepthStencil()
+inline void SDLVulkanWindow::_createDepthStencil()
 {
     if( m_depthFormat == VK_FORMAT_UNDEFINED)
         return;
@@ -460,7 +463,7 @@ void SDLVulkanWindow::_createDepthStencil()
 
 }
 
-std::pair<VkImage, VkDeviceMemory> SDLVulkanWindow::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
+inline std::pair<VkImage, VkDeviceMemory> SDLVulkanWindow::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
                         VkImageUsageFlags usage, VkMemoryPropertyFlags properties)
 {
     auto findMemoryType = [this](uint32_t typeFilter, VkMemoryPropertyFlags props)
@@ -519,7 +522,7 @@ std::pair<VkImage, VkDeviceMemory> SDLVulkanWindow::createImage(uint32_t width, 
     return {image, imageMemory};
 }
 
-VkResult createDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCallbackCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pCallback)
+inline VkResult createDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCallbackCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pCallback)
 {
     auto func = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");
     if (func != nullptr)
@@ -532,7 +535,7 @@ VkResult createDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCa
     }
 }
 
-void SDLVulkanWindow::_createDebug()
+inline void SDLVulkanWindow::_createDebug()
 {
     //PFN_vkCreateDebugReportCallbackEXT SDL2_vkCreateDebugReportCallbackEXT = nullptr;
     //SDL2_vkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT)SDL_Vulkan_GetVkGetInstanceProcAddr();
@@ -553,7 +556,7 @@ void SDLVulkanWindow::_createDebug()
     }
 }
 
-void SDLVulkanWindow::_createSwapchain(uint32_t additionalImages=1)
+inline void SDLVulkanWindow::_createSwapchain(uint32_t additionalImages=1)
 {
     using namespace  std;
 
@@ -686,7 +689,7 @@ void SDLVulkanWindow::_createSwapchain(uint32_t additionalImages=1)
     }
 }
 
-VkDevice SDLVulkanWindow::_createDevice()
+inline VkDevice SDLVulkanWindow::_createDevice()
 {
     using namespace std;
 
@@ -756,7 +759,7 @@ VkDevice SDLVulkanWindow::_createDevice()
     return  m_device;
 }
 
-void SDLVulkanWindow::_selectQueueFamily()
+inline void SDLVulkanWindow::_selectQueueFamily()
 {
     auto physical_devices = m_physicalDevice;
     auto surface = m_surface;
@@ -799,7 +802,7 @@ void SDLVulkanWindow::_selectQueueFamily()
     m_presentQueueIndex = presentIndex;
 }
 
-VkPhysicalDevice SDLVulkanWindow::_selectPhysicalDevice()
+inline VkPhysicalDevice SDLVulkanWindow::_selectPhysicalDevice()
 {
     using namespace std;
     vector<VkPhysicalDevice> physicalDevices;
@@ -815,7 +818,7 @@ VkPhysicalDevice SDLVulkanWindow::_selectPhysicalDevice()
     return physicalDevices[0];;
 }
 
-VkInstance SDLVulkanWindow::_createInstance()
+inline VkInstance SDLVulkanWindow::_createInstance()
 {
     using namespace std;
 
@@ -856,3 +859,5 @@ VkInstance SDLVulkanWindow::_createInstance()
     return instance;
 }
 }
+
+#endif
