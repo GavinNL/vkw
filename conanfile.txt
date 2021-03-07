@@ -1,6 +1,11 @@
 [requires]
 sdl2/2.0.9@bincrafters/stable
 
+[options]
+sdl2:jack=False
+sdl2:shared=True
+
+
 [generators]
 cmake
 cmake_paths

@@ -64,7 +64,3 @@ int main()
     SDL_Quit();
     return 0;
 }
-
-
-#include <vkw/SDLVulkanWindow_INIT.inl>
-#include <vkw/SDLVulkanWindow_USAGE.inl>
