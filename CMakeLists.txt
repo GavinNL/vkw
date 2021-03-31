@@ -1,11 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-
 project( vkw LANGUAGES CXX)
-
-# Needed for vulkan
-find_package(Vulkan)
-
 
 ################################################################################
 # Create an interface for vkw so that it can be
@@ -14,7 +9,7 @@ find_package(Vulkan)
 add_library(vkw INTERFACE)
 add_library(vkw::vkw ALIAS vkw)
 target_include_directories(vkw INTERFACE include)
-target_link_libraries( vkw INTERFACE Vulkan::Vulkan)
+target_link_libraries( vkw INTERFACE)
 ################################################################################
 
 get_directory_property(vkw_has_parent PARENT_DIRECTORY)
@@ -22,7 +17,7 @@ get_directory_property(vkw_has_parent PARENT_DIRECTORY)
 option(VKW_BUILD_EXAMPLES "Build examples" ON)
 
 if(vkw_has_parent)
-
+    # Don't build examples if we are a submodule.
     message("Not building examples")
     set(VKW_BUILD_EXAMPLES OFF)
 
@@ -31,6 +26,9 @@ endif()
 
 
 if( VKW_BUILD_EXAMPLES )
+
+    # Needed for vulkan
+    find_package(Vulkan)
 
     ################################################################################
     # If the conan file exists, include it
@@ -44,10 +42,10 @@ if( VKW_BUILD_EXAMPLES )
     ################################################################################
 
     add_executable( example_SDLWindow example_SDLWindow.cpp )
-    target_link_libraries(example_SDLWindow  CONAN_PKG::sdl2  vkw::vkw)
+    target_link_libraries(example_SDLWindow  CONAN_PKG::sdl2  vkw::vkw Vulkan::Vulkan)
 
     add_executable( example_widget_sdl example_widget_sdl.cpp )
-    target_link_libraries(example_widget_sdl  CONAN_PKG::sdl2  vkw::vkw)
+    target_link_libraries(example_widget_sdl  CONAN_PKG::sdl2  vkw::vkw Vulkan::Vulkan)
 
 
     set(CMAKE_AUTOUIC ON)
@@ -68,7 +66,7 @@ if( VKW_BUILD_EXAMPLES )
         else()
 
             add_executable( example_widget_qt example_widget_qt.cpp )
-            target_link_libraries(example_widget_qt  Qt5::Widgets pthread  vkw::vkw)
+            target_link_libraries(example_widget_qt  Qt5::Widgets pthread  vkw::vkw vkw::vkw Vulkan::Vulkan)
 
         endif()
     else()
