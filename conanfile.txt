@@ -1,5 +1,6 @@
 [requires]
 sdl2/2.0.14@bincrafters/stable
+vulkan-loader/1.2.172
 
 [options]
 sdl2:jack=False
@@ -7,6 +8,6 @@ sdl2:shared=True
 
 
 [generators]
-cmake
+#cmake
+cmake_find_package
 cmake_find_package_multi
-

@@ -33,7 +33,7 @@ conan install .. -s compiler.libcxx=libstdc++11
 # Run cmake and point the cmake prefix path to the location
 # where Qt 5.15 is located. This is only needed
 # for buliding the examples.
-cmake .. -DCMAKE_PREFIX_PATH=/path/to/Qt5.15
+cmake .. -DCMAKE_MODULE_PATH=$PWD -DCMAKE_PREFIX_PATH=/path/to/Qt5.15
 
 make
 ```

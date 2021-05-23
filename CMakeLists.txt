@@ -27,20 +27,9 @@ endif()
 
 if( VKW_BUILD_EXAMPLES )
 
-    ################################################################################
-    # If the conan file exists, include it
-    #
-    #  Use conan package manager to handle SDL library
-    ################################################################################
-    if( EXISTS ${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake )
-        include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake)
-        conan_basic_setup(NO_OUTPUT_DIRS TARGETS)
-    endif()
-    ################################################################################
-
     # Needed for vulkan
-    find_package(Vulkan)
-    find_package(SDL2)
+    find_package(Vulkan REQUIRED)
+    find_package(SDL2 REQUIRED)
 
     add_executable( example_SDLWindow example_SDLWindow.cpp )
     target_link_libraries(example_SDLWindow  SDL2::SDL2  vkw::vkw Vulkan::Vulkan)
