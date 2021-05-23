@@ -8,6 +8,6 @@ sdl2:shared=True
 
 
 [generators]
-#cmake
+cmake
 cmake_find_package
 cmake_find_package_multi

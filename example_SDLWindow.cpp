@@ -17,7 +17,11 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanReportFunc(
     return VK_FALSE;
 }
 
-int main()
+#if defined(__WIN32__)
+int SDL_main(int argc, char *argv[])
+#else
+int main(int argc, char *argv[])
+#endif
 {
     // This needs to be called first to initialize SDL
     SDL_Init(SDL_INIT_EVERYTHING);
