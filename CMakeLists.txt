@@ -27,6 +27,9 @@ endif()
 
 if( VKW_BUILD_EXAMPLES )
 
+    # Set the current binary directory
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_BINARY_DIR} )
+
     # Needed for vulkan
     find_package(Vulkan REQUIRED)
     find_package(SDL2 REQUIRED)

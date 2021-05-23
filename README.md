@@ -20,7 +20,7 @@ target_link_libraries( myapplication vkw::vkw)
 
 Follow the example outline in `example.cpp` to get started.
 
-## Build the Example
+## Build the Example on Linux
 
 ```bash
 cd vkw
@@ -33,9 +33,27 @@ conan install .. -s compiler.libcxx=libstdc++11
 # Run cmake and point the cmake prefix path to the location
 # where Qt 5.15 is located. This is only needed
 # for buliding the examples.
+cmake .. -DCMAKE_PREFIX_PATH=/path/to/Qt5.15
+
+cmake --build .
+```
+
+## Build the Example on Windows
+
+```bash
+cd vkw
+mkdir build && cd build
+
+# run the conan install to get the SDL dependency
+# this is only needed for the examples
+conan install ../conanfile_win.txt 
+
+# Run cmake and point the cmake prefix path to the location
+# where Qt 5.15 is located. This is only needed
+# for buliding the examples.
 cmake .. -DCMAKE_MODULE_PATH=$PWD -DCMAKE_PREFIX_PATH=/path/to/Qt5.15
 
-make
+cmake --build .
 ```
 
 
