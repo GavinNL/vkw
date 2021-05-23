@@ -1,9 +1,16 @@
 #ifndef VKW_SDL_VULKAN_WINDOW_H
 #define VKW_SDL_VULKAN_WINDOW_H
 
+#if __has_include(<SDL2/SDL2.h>)
+#include <SDL2/SDL2.h>
+#include <SDL2/SDL_vulkan.h>
+#else
+#include <SDL.h>
+#include <SDL_vulkan.h>
+#endif
+
 #include <vulkan/vulkan.h>
 
-#include<SDL2/SDL.h>
 #include <vector>
 #include <string>
 #include "Frame.h"

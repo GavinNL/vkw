@@ -27,9 +27,6 @@ endif()
 
 if( VKW_BUILD_EXAMPLES )
 
-    # Needed for vulkan
-    find_package(Vulkan)
-
     ################################################################################
     # If the conan file exists, include it
     #
@@ -41,11 +38,15 @@ if( VKW_BUILD_EXAMPLES )
     endif()
     ################################################################################
 
+    # Needed for vulkan
+    find_package(Vulkan)
+    find_package(SDL2)
+
     add_executable( example_SDLWindow example_SDLWindow.cpp )
-    target_link_libraries(example_SDLWindow  CONAN_PKG::sdl2  vkw::vkw Vulkan::Vulkan)
+    target_link_libraries(example_SDLWindow  SDL2::SDL2  vkw::vkw Vulkan::Vulkan)
 
     add_executable( example_widget_sdl example_widget_sdl.cpp )
-    target_link_libraries(example_widget_sdl  CONAN_PKG::sdl2  vkw::vkw Vulkan::Vulkan)
+    target_link_libraries(example_widget_sdl  SDL2::SDL2  vkw::vkw Vulkan::Vulkan)
 
 
     set(CMAKE_AUTOUIC ON)

@@ -1,5 +1,5 @@
 [requires]
-sdl2/2.0.9@bincrafters/stable
+sdl2/2.0.14@bincrafters/stable
 
 [options]
 sdl2:jack=False
@@ -8,6 +8,5 @@ sdl2:shared=True
 
 [generators]
 cmake
-cmake_paths
-cmake_find_package
+cmake_find_package_multi
 

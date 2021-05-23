@@ -1,11 +1,6 @@
 #ifndef VKW_QT_SDL_WIDGET3_H
 #define VKW_QT_SDL_WIDGET3_H
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_vulkan.h>
-
-#include <vulkan/vulkan.hpp>
-
 #include "SDLVulkanWindow.h"
 #include "VulkanApplication.h"
 #include "Frame.h"
