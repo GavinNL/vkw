@@ -28,7 +28,7 @@ endif()
 if( VKW_BUILD_EXAMPLES )
 
     # Set the current binary directory
-    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_BINARY_DIR} )
+    set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_MODULE_PATH})
 
     # Needed for vulkan
     find_package(Vulkan REQUIRED)
@@ -48,23 +48,32 @@ if( VKW_BUILD_EXAMPLES )
     set(CMAKE_CXX_STANDARD 17)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-    find_package(Qt5 COMPONENTS Widgets)
+    # First look for Qt6
+    find_package(Qt6 COMPONENTS Widgets)
 
-    if (Qt5Widgets_FOUND)
+    if (QT6_INSTALL_PREFIX)
 
-        if (Qt5Widgets_VERSION VERSION_LESS 5.15.0)
+        add_executable( example_widget_qt example_widget_qt.cpp )
+        target_link_libraries(example_widget_qt  Qt6::Widgets pthread  vkw::vkw vkw::vkw Vulkan::Vulkan)
 
-            message(NOTICE "Minimum supported Qt5 version is 5.15. Cannot build Qt examples!")
+    else()
+
+        find_package(Qt5 COMPONENTS Widgets)
+
+        if( Qt5Widgets_FOUND )
+
+            if (Qt5Widgets_VERSION VERSION_LESS 5.15.0)
+                message(NOTICE "Minimum supported Qt5 version is 5.15. Cannot build Qt examples!")
+            else()
+                add_executable( example_widget_qt example_widget_qt.cpp )
+                target_link_libraries(example_widget_qt  Qt5::Widgets pthread  vkw::vkw vkw::vkw Vulkan::Vulkan)
+            endif()
 
         else()
-
-            add_executable( example_widget_qt example_widget_qt.cpp )
-            target_link_libraries(example_widget_qt  Qt5::Widgets pthread  vkw::vkw vkw::vkw Vulkan::Vulkan)
-
+            message(NOTICE "The Qt5 library could not be found! Not building Qt examples")
         endif()
-    else()
-        message(NOTICE "The Qt5Widgets library could not be found! Not building Qt examples")
-    endif(Qt5Widgets_FOUND)
+
+    endif()
 
 endif()
 

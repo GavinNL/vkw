@@ -6,7 +6,6 @@ vulkan-loader/1.2.172
 sdl2:jack=False
 sdl2:shared=True
 
-
 [generators]
 cmake
 cmake_find_package
