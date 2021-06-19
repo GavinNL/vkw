@@ -89,7 +89,6 @@ public:
 
         app->m_swapchainImageViews = m_swapchainImageViews;
         app->m_swapchainImages = m_swapchainImages;
-        app->m_swapchainImages.clear();
 
         app->m_currentSwapchainIndex=0;
     }
