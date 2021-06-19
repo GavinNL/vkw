@@ -291,7 +291,7 @@ inline void SDLVulkanWindow::destroy()
 
     if( m_debugCallback )
     {
-        auto func = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(m_instance, "vkDestroyDebugReportCallbackEXT");
+        auto func = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(vkGetInstanceProcAddr(m_instance, "vkDestroyDebugReportCallbackEXT"));
         if (func != nullptr)
         {
             func(m_instance, m_debugCallback, nullptr);
@@ -523,7 +523,7 @@ inline std::pair<VkImage, VkDeviceMemory> SDLVulkanWindow::createImage(uint32_t 
 
 inline VkResult createDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCallbackCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pCallback)
 {
-    auto func = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");
+    auto func = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT"));
     if (func != nullptr)
     {
         return func(instance, pCreateInfo, pAllocator, pCallback);
