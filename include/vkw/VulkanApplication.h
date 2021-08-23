@@ -188,6 +188,11 @@ public:
     {
         return m_quit;
     }
+
+    uint64_t currentFrameNumber() const
+    {
+        return m_currentFrameNumber;
+    }
 protected:
     friend class SDLVulkanWidget3;
 
@@ -208,7 +213,7 @@ protected:
     bool                     m_quit=false;
     bool                     m_renderNextFrame=true;
 
-
+    uint64_t                 m_currentFrameNumber=0;
     VkQueue                  m_graphicsQueue;
     VkQueue                  m_presentQueue;
 
