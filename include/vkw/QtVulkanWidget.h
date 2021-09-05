@@ -168,7 +168,8 @@ protected:
  *
  *
  */
-class QtVulkanWidget : public QVulkanWindow
+class QtVulkanWidget : public QVulkanWindow,
+                       public BaseWidget
 {
   //  Q_OBJECT
 

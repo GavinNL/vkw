@@ -14,10 +14,11 @@
 #include <vector>
 #include <string>
 #include "Frame.h"
+#include "base_widget.h"
 
 namespace vkw
 {
-class SDLVulkanWindow
+class SDLVulkanWindow : public BaseWidget
 {
     public:
 
@@ -27,6 +28,14 @@ class SDLVulkanWindow
         PFN_vkDebugReportCallbackEXT callback = nullptr;
         std::vector<std::string> enabledLayers     = { "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_standard_validation"};
         std::vector<std::string> enabledExtensions = { VK_EXT_DEBUG_REPORT_EXTENSION_NAME };
+
+        #if defined VK_HEADER_VERSION_COMPLETE
+            #define VKW_DEFAULT_VULKAN_VERSION VK_HEADER_VERSION_COMPLETE
+        #else
+            #define VKW_DEFAULT_VULKAN_VERSION VK_MAKE_VERSION(1, 0, 0)
+        #endif
+
+        uint32_t                 vulkanVersion     = VKW_DEFAULT_VULKAN_VERSION;
     };
 
     struct SurfaceInitilizationInfo
@@ -36,6 +45,16 @@ class SDLVulkanWindow
         uint32_t  additionalImageCount = 1; // how many additional swapchain images should we create ( total = min_images + additionalImageCount
         VkPhysicalDeviceFeatures enabledFeatures = {}; // which additional features should we enable?
                                                   // if the device does not support this feature, it will not be enabled
+        void enableAllFeatures()
+        {
+            auto * b = &enabledFeatures.robustBufferAccess;
+            auto * e = &enabledFeatures.inheritedQueries;
+            while(b!=e)
+            {
+                *b = true;
+                ++b;
+            }
+        }
     };
 
 
