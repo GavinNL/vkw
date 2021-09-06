@@ -12,6 +12,13 @@ namespace vkw
 {
 inline Frame SDLVulkanWindow::acquireNextFrame()
 {
+    if( m_swapchain == VK_NULL_HANDLE)
+    {
+        _createSwapchain(m_initInfo2.surface.additionalImageCount);
+        // level 2 initilization objects
+        _createPerFrameObjects();
+    }
+
     uint32_t frameIndex;
     vkAcquireNextImageKHR(  m_device,
                             m_swapchain,

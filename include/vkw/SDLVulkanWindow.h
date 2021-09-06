@@ -58,6 +58,41 @@ class SDLVulkanWindow : public BaseWidget
     };
 
 
+    struct InstanceInitilizationInfo2
+    {
+        PFN_vkDebugReportCallbackEXT debugCallback = nullptr;
+        std::vector<std::string> enabledLayers     = { "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_standard_validation"};
+        std::vector<std::string> enabledExtensions = { VK_EXT_DEBUG_REPORT_EXTENSION_NAME };
+
+        #if defined VK_HEADER_VERSION_COMPLETE
+            #define VKW_DEFAULT_VULKAN_VERSION VK_HEADER_VERSION_COMPLETE
+        #else
+            #define VKW_DEFAULT_VULKAN_VERSION VK_MAKE_VERSION(1, 0, 0)
+        #endif
+        uint32_t                 vulkanVersion     = VKW_DEFAULT_VULKAN_VERSION;
+    };
+    struct SurfaceInitilizationInfo2
+    {
+        VkFormat         depthFormat          = VkFormat::VK_FORMAT_D32_SFLOAT_S8_UINT;
+        VkPresentModeKHR presentMode          = VK_PRESENT_MODE_FIFO_KHR;
+        uint32_t         additionalImageCount = 1;// how many additional swapchain images should we create ( total = min_images + additionalImageCount
+    };
+    struct DeviceInitilizationInfo2
+    {
+        std::vector<std::string> deviceExtensions;
+        VkPhysicalDeviceFeatures enabledFeatures = {};
+    };
+    struct
+    {
+        InstanceInitilizationInfo2 instance;
+        SurfaceInitilizationInfo2  surface;
+        DeviceInitilizationInfo2  device;
+    } m_initInfo2;
+
+    void createVulkanInstance(InstanceInitilizationInfo2 const & I);
+    void createVulkanSurface(SurfaceInitilizationInfo2 const & I);
+    void createVulkanDevice(DeviceInitilizationInfo2 const & I);
+
     // 1. Create the  window first using this function
     void createWindow(const char *title, int x, int y, int w, int h, Uint32 flags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
 

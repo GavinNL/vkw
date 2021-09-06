@@ -141,9 +141,9 @@ inline void SDLVulkanWindow::_destroySwapchain(bool destroyRenderPass)
 
 inline void SDLVulkanWindow::initSurface( SDLVulkanWindow::SurfaceInitilizationInfo I)
 {
-    m_additionalImages = I.additionalImageCount;
-    m_depthFormat = I.depthFormat;
-    m_presentMode = I.presentMode;
+    m_additionalImages       = I.additionalImageCount;
+    m_depthFormat            = I.depthFormat;
+    m_presentMode            = I.presentMode;
     m_physicalDeviceFeatures = I.enabledFeatures;
 
     //_createDebug();
@@ -158,23 +158,6 @@ inline void SDLVulkanWindow::initSurface( SDLVulkanWindow::SurfaceInitilizationI
     // level 2 initilization objects
     _createPerFrameObjects();
 }
-
-//void SDLVulkanWindow::init()
-//{
-//    //m_window = _createWindow();
-//    //m_instance = _createInstance();
-//    _createDebug();
-//    SDL_Vulkan_CreateSurface(m_window, m_instance, &m_surface);
-//    m_physicalDevice = _selectPhysicalDevice();
-//    _selectQueueFamily();
-//    m_device = _createDevice();
-
-
-//    _createSwapchain(1);
-
-//    // level 2 initilization objects
-//    _createPerFrameObjects();
-//}
 
 inline void SDLVulkanWindow::_createPerFrameObjects()
 {
@@ -718,6 +701,10 @@ inline VkDevice SDLVulkanWindow::_createDevice()
     queueCreateInfo.queueCount = 1;
     queueCreateInfo.pQueuePriorities = &queuePriority;
 
+    //==============================================================================
+    // Double check that all the device features which have been requested
+    // are supported. If there are any that are not supported, turn them off
+    //==============================================================================
     VkPhysicalDeviceFeatures deviceFeatures = {};
     vkGetPhysicalDeviceFeatures(m_physicalDevice, &deviceFeatures);
     VkBool32 * feat = reinterpret_cast<VkBool32*>(&deviceFeatures);
@@ -728,6 +715,9 @@ inline VkDevice SDLVulkanWindow::_createDevice()
         *feat &= reinterpret_cast<VkBool32*>(&m_physicalDeviceFeatures)[i++];
         feat++;
     }
+    //==============================================================================
+
+
     //https://en.wikipedia.org/wiki/Anisotropic_filtering
     //VkPhysicalDeviceFeatures deviceFeatures = {};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
@@ -747,6 +737,16 @@ inline VkDevice SDLVulkanWindow::_createDevice()
 
     createInfo.enabledLayerCount   = static_cast<uint32_t>(validationLayers.size());
     createInfo.ppEnabledLayerNames = validationLayers.data();
+
+    //===================================================
+    VkPhysicalDeviceFeatures2 deviceFeaturesExt;
+    deviceFeaturesExt.features = deviceFeatures;
+
+    createInfo.pNext = &deviceFeaturesExt;
+
+    createInfo.pEnabledFeatures = nullptr;
+
+    //===================================================
 
     if( VkResult::VK_SUCCESS != vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device) )
     {
@@ -816,6 +816,195 @@ inline VkPhysicalDevice SDLVulkanWindow::_selectPhysicalDevice()
     //m_physicalDevice = physicalDevices[0];
     return physicalDevices[0];;
 }
+
+inline void SDLVulkanWindow::createVulkanInstance(InstanceInitilizationInfo2 const & I)
+{
+    using namespace std;
+
+    assert(m_window);
+
+    //=================================================================
+    m_initInfo2.instance.enabledLayers = I.enabledLayers;
+    //=================================================================
+    // Make sure there are no duplicate layers
+    //=================================================================
+    vector<const char *> validationLayers;
+    {
+        std::set<std::string> validationLayersSet;
+        for(auto & x : I.enabledLayers)
+            validationLayersSet.insert(x);
+        m_initInfo2.instance.enabledLayers.clear();
+        for(auto & x : validationLayersSet)
+        {
+            m_initInfo2.instance.enabledLayers.push_back(x);
+        }
+        for(auto & x : m_initInfo2.instance.enabledLayers)
+            validationLayers.push_back(x.data());
+    }
+    //=================================================================
+
+
+
+    vector<const char *> extensionNames;
+
+    {
+        std::set<std::string> extensionSet;
+
+        // get the REQUIRED extensions needed
+        auto extNames = getAvailableVulkanExtensions();
+        for(auto & e : extNames)
+        {
+            extensionSet.insert(e);
+        }
+        if( I.debugCallback ) // add the debug report extension
+        {
+            extensionSet.insert(VK_EXT_DEBUG_REPORT_EXTENSION_NAME)   ;
+        }
+        for(auto & e : I.enabledExtensions)
+        {
+            extensionSet.insert( e );
+        }
+        m_initInfo2.instance.enabledExtensions.clear();
+        for(auto & e : extensionSet)
+        {
+            m_initInfo2.instance.enabledExtensions.push_back(e);
+        }
+        for(auto & e : m_initInfo2.instance.enabledExtensions)
+        {
+            extensionNames.push_back(e.data());
+        }
+    }
+
+
+    VkApplicationInfo appInfo = {};
+    appInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    appInfo.pApplicationName   = "App name";
+    appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+    appInfo.pEngineName        = "No Engine";
+    appInfo.engineVersion      = VK_MAKE_VERSION(1, 0, 0);
+    appInfo.apiVersion         = I.vulkanVersion;
+
+    VkInstanceCreateInfo instanceCreateInfo    = {};
+    instanceCreateInfo.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    instanceCreateInfo.pApplicationInfo        = &appInfo;
+    instanceCreateInfo.enabledLayerCount       = static_cast<uint32_t>(validationLayers.size());
+    instanceCreateInfo.ppEnabledLayerNames     = validationLayers.data();
+    instanceCreateInfo.enabledExtensionCount   = static_cast<uint32_t>(extensionNames.size());
+    instanceCreateInfo.ppEnabledExtensionNames = extensionNames.data();
+
+    VkInstance instance;
+    if( VkResult::VK_SUCCESS != vkCreateInstance(&instanceCreateInfo, nullptr, &instance) )
+    {
+        throw std::runtime_error("Failed to create Vulkan Instance");
+    }
+    m_instance = instance;
+}
+
+inline void SDLVulkanWindow::createVulkanSurface(SurfaceInitilizationInfo2 const & I)
+{
+    m_initInfo2.surface = I;
+    SDL_Vulkan_CreateSurface(m_window, m_instance, &m_surface);
+}
+
+inline void SDLVulkanWindow::createVulkanDevice(const DeviceInitilizationInfo2 &I)
+{
+    m_physicalDevice = _selectPhysicalDevice();
+
+    m_initInfo2.device = I;
+    // find the proper queue indices
+    _selectQueueFamily();
+
+    const std::vector<const char*> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    const float queue_priority[] = { 1.0f };
+
+    assert(m_graphicsQueueIndex >= 0);
+    assert(m_presentQueueIndex >= 0);
+
+    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    std::set<uint32_t> uniqueQueueFamilies = { static_cast<uint32_t>(m_graphicsQueueIndex), static_cast<uint32_t>(m_presentQueueIndex) };
+
+    float queuePriority = queue_priority[0];
+    for(auto queueFamily : uniqueQueueFamilies)
+    {
+        VkDeviceQueueCreateInfo queueCreateInfo = {};
+        queueCreateInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex        = queueFamily;
+        queueCreateInfo.queueCount              = 1;
+        queueCreateInfo.pQueuePriorities        = &queuePriority;
+        queueCreateInfos.push_back(queueCreateInfo);
+    }
+
+    VkDeviceQueueCreateInfo queueCreateInfo = {};
+    queueCreateInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueCreateInfo.queueFamilyIndex        = static_cast<uint32_t>(m_graphicsQueueIndex);
+    queueCreateInfo.queueCount              = 1;
+    queueCreateInfo.pQueuePriorities        = &queuePriority;
+
+    //==============================================================================
+    // Double check that all the device features which have been requested
+    // are supported. If there are any that are not supported, turn them off
+    //==============================================================================
+    {
+        VkPhysicalDeviceFeatures availableDeviceFeatures = {};
+        vkGetPhysicalDeviceFeatures(m_physicalDevice, &availableDeviceFeatures);
+        VkBool32 *avilFeat      = &availableDeviceFeatures.robustBufferAccess;
+        VkBool32 *availFeatEnd  = avilFeat + sizeof(availableDeviceFeatures) / sizeof(VkBool32);
+        VkBool32 *requestedFeat = &m_initInfo2.device.enabledFeatures.robustBufferAccess;
+
+        while( avilFeat != availFeatEnd)
+        {
+            *requestedFeat &= *avilFeat;
+
+            avilFeat++;
+            requestedFeat++;
+        }
+    }
+    //==============================================================================
+
+
+    //https://en.wikipedia.org/wiki/Anisotropic_filtering
+    //VkPhysicalDeviceFeatures deviceFeatures = {};
+    //deviceFeatures.samplerAnisotropy = VK_TRUE;
+
+    VkDeviceCreateInfo createInfo = {};
+    createInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    createInfo.pQueueCreateInfos       = &queueCreateInfo;
+    createInfo.queueCreateInfoCount    = static_cast<uint32_t>(queueCreateInfos.size());
+    createInfo.pQueueCreateInfos       = queueCreateInfos.data();
+
+    // use the extended method, see below
+    createInfo.pEnabledFeatures        = nullptr;
+
+    createInfo.enabledExtensionCount   = static_cast<uint32_t>(deviceExtensions.size());
+    createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+
+    std::vector<const char*> validationLayers;//
+    for(auto &x : m_initInfo2.instance.enabledLayers)
+        validationLayers.push_back(x.data());
+
+    createInfo.enabledLayerCount   = static_cast<uint32_t>(validationLayers.size());
+    createInfo.ppEnabledLayerNames = validationLayers.data();
+
+    //===================================================
+    // enable features using the extended method
+
+    VkPhysicalDeviceFeatures2 deviceFeaturesExt = {};
+
+    deviceFeaturesExt.sType    = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    deviceFeaturesExt.features = m_initInfo2.device.enabledFeatures;
+
+    createInfo.pNext = &deviceFeaturesExt;
+    //===================================================
+
+    if( VkResult::VK_SUCCESS != vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device) )
+    {
+        throw std::runtime_error("Failed to create device");
+    }
+
+    vkGetDeviceQueue(m_device, static_cast<uint32_t>(m_graphicsQueueIndex), 0, &m_graphicsQueue);
+    vkGetDeviceQueue(m_device, static_cast<uint32_t>(m_presentQueueIndex ), 0, &m_presentQueue);
+}
+
 
 inline VkInstance SDLVulkanWindow::_createInstance()
 {
