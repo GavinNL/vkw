@@ -31,6 +31,10 @@ public:
         }
         return results;
     }
+    static std::set<std::string> getSupportedInstanceExtensions()
+    {
+        return getSupportedExtensions();
+    }
 
     static std::set<std::string> getSupportedLayers()
     {

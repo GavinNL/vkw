@@ -36,6 +36,9 @@ int main(int argc, char *argv[])
     // 2. Create the Instance
     vkw::SDLVulkanWindow::InstanceInitilizationInfo2 instanceInfo;
     instanceInfo.debugCallback = &VulkanReportFunc;
+    instanceInfo.vulkanVersion = VK_MAKE_VERSION(1, 0, 0);
+    instanceInfo.enabledExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+
     window->createVulkanInstance(instanceInfo);
 
     // 3. Create the surface
@@ -45,9 +48,18 @@ int main(int argc, char *argv[])
     surfaceInfo.additionalImageCount = 1;// how many additional swapchain images should we create ( total = min_images + additionalImageCount
     window->createVulkanSurface(surfaceInfo);
 
+    // Select the appropriate physical device
+    window->createPhysicalDevice();
+    for(auto & x : window->getSupportedDeviceExtensions(window->getPhysicalDevice()) )
+    {
+        std::cout << "Supported Extensions: " << x << std::endl;
+    }
+
     // 4. Create the device
     vkw::SDLVulkanWindow::DeviceInitilizationInfo2 deviceInfo;
-    deviceInfo.deviceExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+    deviceInfo.deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+    deviceInfo.deviceExtensions.push_back(VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME);
+
     window->createVulkanDevice(deviceInfo);
 
 

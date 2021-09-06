@@ -7,6 +7,7 @@
 #include <cassert>
 #include <stdexcept>
 #include <set>
+#include <algorithm>
 
 namespace vkw
 {
@@ -684,7 +685,7 @@ inline void SDLVulkanWindow::_selectQueueFamily()
     m_presentQueueIndex = presentIndex;
 }
 
-inline VkPhysicalDevice SDLVulkanWindow::_selectPhysicalDevice()
+inline void SDLVulkanWindow::createPhysicalDevice()
 {
     using namespace std;
     vector<VkPhysicalDevice> physicalDevices;
@@ -695,9 +696,26 @@ inline VkPhysicalDevice SDLVulkanWindow::_selectPhysicalDevice()
     vkEnumeratePhysicalDevices(m_instance, &physicalDeviceCount, physicalDevices.data());
 
 
-
+    m_physicalDevice = physicalDevices[0];
     //m_physicalDevice = physicalDevices[0];
-    return physicalDevices[0];;
+    //return physicalDevices[0];;
+}
+
+std::vector<std::string> _validateExtension(std::vector<std::string> const & ext, std::set<std::string> const & valid)
+{
+    std::vector<std::string> out;
+    for(auto & e : ext)
+    {
+        if( valid.count(e) )
+        {
+            out.push_back(e);
+        }
+    }
+    std::sort( out.begin(), out.end() );
+
+    auto it = std::unique(out.begin(), out.end() );
+    out.erase( it, out.end() );
+    return out;
 }
 
 inline void SDLVulkanWindow::createVulkanInstance(InstanceInitilizationInfo2 const & I)
@@ -727,34 +745,19 @@ inline void SDLVulkanWindow::createVulkanInstance(InstanceInitilizationInfo2 con
     }
     //=================================================================
 
-
-
     vector<const char *> extensionNames;
 
     {
-        std::set<std::string> extensionSet;
+        auto requiredExtensions = getAvailableVulkanExtensions();
+        m_initInfo2.instance.enabledExtensions.insert(m_initInfo2.instance.enabledExtensions.end(), requiredExtensions.begin(),requiredExtensions.end());
+    }
+    {
+        auto supportedExtensions = getSupportedInstanceExtensions();
+        m_initInfo2.instance.enabledExtensions = _validateExtension(m_initInfo2.instance.enabledExtensions, supportedExtensions);
 
-        // get the REQUIRED extensions needed
-        auto extNames = getAvailableVulkanExtensions();
-        for(auto & e : extNames)
-        {
-            extensionSet.insert(e);
-        }
-        if( m_initInfo2.instance.debugCallback ) // add the debug report extension
-        {
-            extensionSet.insert(VK_EXT_DEBUG_REPORT_EXTENSION_NAME)   ;
-        }
-        for(auto & e : I.enabledExtensions)
-        {
-            extensionSet.insert( e );
-        }
-        m_initInfo2.instance.enabledExtensions.clear();
-        for(auto & e : extensionSet)
-        {
-            m_initInfo2.instance.enabledExtensions.push_back(e);
-        }
         for(auto & e : m_initInfo2.instance.enabledExtensions)
         {
+            std::cerr << "Enabling Extension: " << e << std::endl;
             extensionNames.push_back(e.data());
         }
     }
@@ -797,13 +800,25 @@ inline void SDLVulkanWindow::createVulkanSurface(SurfaceInitilizationInfo2 const
 
 inline void SDLVulkanWindow::createVulkanDevice(const DeviceInitilizationInfo2 &I)
 {
-    m_physicalDevice = _selectPhysicalDevice();
-
+    assert(m_physicalDevice != VK_NULL_HANDLE);
     m_initInfo2.device = I;
     // find the proper queue indices
     _selectQueueFamily();
 
-    const std::vector<const char*> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    //==========
+    std::vector<const char*> deviceExtensions;
+    {
+        auto supportedExtensions = getSupportedDeviceExtensions(m_physicalDevice);
+        m_initInfo2.device.deviceExtensions = _validateExtension(m_initInfo2.device.deviceExtensions,
+                                                                 supportedExtensions);
+
+        for(auto & e : m_initInfo2.device.deviceExtensions)
+        {
+            std::cerr << "Enabling Device Extension: " << e << std::endl;
+            deviceExtensions.push_back(e.data());
+        }
+    }
+
     const float queue_priority[] = { 1.0f };
 
     assert(m_graphicsQueueIndex >= 0);
@@ -883,6 +898,7 @@ inline void SDLVulkanWindow::createVulkanDevice(const DeviceInitilizationInfo2 &
     deviceFeaturesExt.features = m_initInfo2.device.enabledFeatures;
 
     createInfo.pNext = &deviceFeaturesExt;
+
     //===================================================
 
     if( VkResult::VK_SUCCESS != vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device) )

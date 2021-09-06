@@ -44,7 +44,7 @@ class SDLVulkanWindow : public BaseWidget
 
     struct DeviceInitilizationInfo2
     {
-        std::vector<std::string> deviceExtensions;
+        std::vector<std::string> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
         VkPhysicalDeviceFeatures enabledFeatures = {};
     };
 
@@ -57,6 +57,7 @@ class SDLVulkanWindow : public BaseWidget
 
     void createVulkanInstance(InstanceInitilizationInfo2 const & I);
     void createVulkanSurface(SurfaceInitilizationInfo2 const & I);
+    void createPhysicalDevice();
     void createVulkanDevice(DeviceInitilizationInfo2 const & I);
 
     // 1. Create the  window first using this function
@@ -198,7 +199,6 @@ protected:
 private:
     SDL_Window *     _createWindow();
 
-    VkPhysicalDevice _selectPhysicalDevice();
     void             _selectQueueFamily();
     VkDevice         _createDevice();
     void             _createSwapchain(uint32_t additionalImages);
