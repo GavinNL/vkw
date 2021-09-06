@@ -10,12 +10,6 @@
 
 namespace vkw
 {
-inline void SDLVulkanWindow::createVulkanInstance(InitilizationInfo info)
-{
-    m_initInfo = info;
-    m_instance = _createInstance();
-    _createDebug();
-}
 
 inline void SDLVulkanWindow::createWindow(const char *title, int x, int y, int w,
                                                       int h, Uint32 flags)
@@ -137,26 +131,6 @@ inline void SDLVulkanWindow::_destroySwapchain(bool destroyRenderPass)
         vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);
         m_swapchain = VK_NULL_HANDLE;
     }
-}
-
-inline void SDLVulkanWindow::initSurface( SDLVulkanWindow::SurfaceInitilizationInfo I)
-{
-    m_additionalImages       = I.additionalImageCount;
-    m_depthFormat            = I.depthFormat;
-    m_presentMode            = I.presentMode;
-    m_physicalDeviceFeatures = I.enabledFeatures;
-
-    //_createDebug();
-    SDL_Vulkan_CreateSurface(m_window, m_instance, &m_surface);
-
-    m_physicalDevice = _selectPhysicalDevice();
-    _selectQueueFamily();
-    m_device = _createDevice();
-
-    _createSwapchain(I.additionalImageCount);
-
-    // level 2 initilization objects
-    _createPerFrameObjects();
 }
 
 inline void SDLVulkanWindow::_createPerFrameObjects()
@@ -319,10 +293,10 @@ inline void SDLVulkanWindow::_createFramebuffers()
 
     for (size_t i = 0; i < m_swapchainImageViews.size(); i++)
     {
-        std::vector<VkImageView> attachments( m_depthFormat==VK_FORMAT_UNDEFINED? 1 : 2);
+        std::vector<VkImageView> attachments( m_initInfo2.surface.depthFormat == VK_FORMAT_UNDEFINED? 1 : 2);
         attachments[0] = m_swapchainImageViews[i];
 
-        if( m_depthFormat != VK_FORMAT_UNDEFINED )
+        if( m_initInfo2.surface.depthFormat != VK_FORMAT_UNDEFINED )
             attachments[1] = m_depthStencilImageView;
 
         VkFramebufferCreateInfo framebufferInfo = {};
@@ -355,10 +329,10 @@ inline void SDLVulkanWindow::_createRenderPass()
         attachments[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         attachments[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-        if( m_depthFormat != VK_FORMAT_UNDEFINED)
+        if( m_initInfo2.surface.depthFormat != VK_FORMAT_UNDEFINED)
         {
             attachments.resize(2);
-            attachments[1].format = m_depthFormat;
+            attachments[1].format = getDepthFormat();
             attachments[1].samples = VK_SAMPLE_COUNT_1_BIT;
             attachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
             attachments[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -380,7 +354,7 @@ inline void SDLVulkanWindow::_createRenderPass()
         subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subpassDescription.colorAttachmentCount = 1;
         subpassDescription.pColorAttachments = &colorReference;
-        subpassDescription.pDepthStencilAttachment =  m_depthFormat != VK_FORMAT_UNDEFINED ? &depthReference : nullptr;
+        subpassDescription.pDepthStencilAttachment =  m_initInfo2.surface.depthFormat != VK_FORMAT_UNDEFINED ? &depthReference : nullptr;
         subpassDescription.inputAttachmentCount = 0;
         subpassDescription.pInputAttachments = nullptr;
         subpassDescription.preserveAttachmentCount = 0;
@@ -414,28 +388,28 @@ inline void SDLVulkanWindow::_createRenderPass()
 
 inline void SDLVulkanWindow::_createDepthStencil()
 {
-    if( m_depthFormat == VK_FORMAT_UNDEFINED)
+    if( getDepthFormat() == VK_FORMAT_UNDEFINED)
         return;
 
     //VkBool32 validDepthFormat = getSupportedDepthFormat(m_physicalDevice, &m_depthFormat);
     auto p =
     createImage(m_swapchainSize.width, m_swapchainSize.height,
-                m_depthFormat, VK_IMAGE_TILING_OPTIMAL,
+                getDepthFormat(), VK_IMAGE_TILING_OPTIMAL,
                 VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
     m_depthStencil = p.first;
     m_depthStencilImageMemory = p.second;
     {
         VkImageViewCreateInfo viewInfo = {};
-        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        viewInfo.image = m_depthStencil;
-        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        viewInfo.format = m_depthFormat;
-        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-        viewInfo.subresourceRange.baseMipLevel = 0;
-        viewInfo.subresourceRange.levelCount = 1;
+        viewInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        viewInfo.image                           = m_depthStencil;
+        viewInfo.viewType                        = VK_IMAGE_VIEW_TYPE_2D;
+        viewInfo.format                          = getDepthFormat();
+        viewInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_DEPTH_BIT;
+        viewInfo.subresourceRange.baseMipLevel   = 0;
+        viewInfo.subresourceRange.levelCount     = 1;
         viewInfo.subresourceRange.baseArrayLayer = 0;
-        viewInfo.subresourceRange.layerCount = 1;
+        viewInfo.subresourceRange.layerCount     = 1;
 
         if (vkCreateImageView(m_device, &viewInfo, nullptr, &m_depthStencilImageView) != VK_SUCCESS)
         {
@@ -517,25 +491,21 @@ inline VkResult createDebugReportCallbackEXT(VkInstance instance, const VkDebugR
     }
 }
 
-inline void SDLVulkanWindow::_createDebug()
+inline VkDebugReportCallbackEXT SDLVulkanWindow::_createDebug(PFN_vkDebugReportCallbackEXT _callback)
 {
-    //PFN_vkCreateDebugReportCallbackEXT SDL2_vkCreateDebugReportCallbackEXT = nullptr;
-    //SDL2_vkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT)SDL_Vulkan_GetVkGetInstanceProcAddr();
+    VkDebugReportCallbackCreateInfoEXT debugCallbackCreateInfo = {};
+    debugCallbackCreateInfo.sType                              = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+    debugCallbackCreateInfo.flags                              = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
+    debugCallbackCreateInfo.pfnCallback                        = _callback;
 
-    if( m_initInfo.callback)
+    //SDL2_vkCreateDebugReportCallbackEXT(m_instance, &debugCallbackCreateInfo, 0, &m_debugCallback);
+
+    VkDebugReportCallbackEXT outCallback = VK_NULL_HANDLE;
+    if (createDebugReportCallbackEXT(m_instance, &debugCallbackCreateInfo, nullptr, &outCallback) != VK_SUCCESS)
     {
-        VkDebugReportCallbackCreateInfoEXT debugCallbackCreateInfo = {};
-        debugCallbackCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-        debugCallbackCreateInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
-        debugCallbackCreateInfo.pfnCallback = m_initInfo.callback;
-
-        //SDL2_vkCreateDebugReportCallbackEXT(m_instance, &debugCallbackCreateInfo, 0, &m_debugCallback);
-
-        if (createDebugReportCallbackEXT(m_instance, &debugCallbackCreateInfo, nullptr, &m_debugCallback) != VK_SUCCESS)
-        {
-            throw std::runtime_error("unable to create debug report callback extension");
-        }
+        throw std::runtime_error("unable to create debug report callback extension");
     }
+    return outCallback;
 }
 
 inline void SDLVulkanWindow::_createSwapchain(uint32_t additionalImages=1)
@@ -608,7 +578,7 @@ inline void SDLVulkanWindow::_createSwapchain(uint32_t additionalImages=1)
 
     createInfo.preTransform   = m_surfaceCapabilities.currentTransform;
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    createInfo.presentMode    = m_presentMode;
+    createInfo.presentMode    = m_initInfo2.surface.presentMode;
     createInfo.clipped        = VK_TRUE;
 
     if(VkResult::VK_SUCCESS != vkCreateSwapchainKHR(m_device, &createInfo, nullptr, &m_swapchain) )
@@ -665,97 +635,10 @@ inline void SDLVulkanWindow::_createSwapchain(uint32_t additionalImages=1)
         f.swapchainSize  = m_swapchainSize;
         f.depthImage     = m_depthStencil;
         f.depthImageView = m_depthStencilImageView;
-        f.depthFormat    = m_depthFormat;
+        f.depthFormat    = m_initInfo2.surface.depthFormat;
         f.swapchainFormat= m_surfaceFormat.format;
 
     }
-}
-
-inline VkDevice SDLVulkanWindow::_createDevice()
-{
-    using namespace std;
-
-    const std::vector<const char*> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-    const float queue_priority[] = { 1.0f };
-
-    assert(m_graphicsQueueIndex >= 0);
-    assert(m_presentQueueIndex >= 0);
-
-    vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-    set<uint32_t> uniqueQueueFamilies = { static_cast<uint32_t>(m_graphicsQueueIndex), static_cast<uint32_t>(m_presentQueueIndex) };
-
-    float queuePriority = queue_priority[0];
-    for(auto queueFamily : uniqueQueueFamilies)
-    {
-        VkDeviceQueueCreateInfo queueCreateInfo = {};
-        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex = queueFamily;
-        queueCreateInfo.queueCount = 1;
-        queueCreateInfo.pQueuePriorities = &queuePriority;
-        queueCreateInfos.push_back(queueCreateInfo);
-    }
-
-    VkDeviceQueueCreateInfo queueCreateInfo = {};
-    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex = static_cast<uint32_t>(m_graphicsQueueIndex);
-    queueCreateInfo.queueCount = 1;
-    queueCreateInfo.pQueuePriorities = &queuePriority;
-
-    //==============================================================================
-    // Double check that all the device features which have been requested
-    // are supported. If there are any that are not supported, turn them off
-    //==============================================================================
-    VkPhysicalDeviceFeatures deviceFeatures = {};
-    vkGetPhysicalDeviceFeatures(m_physicalDevice, &deviceFeatures);
-    VkBool32 * feat = reinterpret_cast<VkBool32*>(&deviceFeatures);
-    VkBool32 * featEnd = feat + sizeof(deviceFeatures)/sizeof(VkBool32);
-    uint32_t i=0;
-    while( feat != featEnd)
-    {
-        *feat &= reinterpret_cast<VkBool32*>(&m_physicalDeviceFeatures)[i++];
-        feat++;
-    }
-    //==============================================================================
-
-
-    //https://en.wikipedia.org/wiki/Anisotropic_filtering
-    //VkPhysicalDeviceFeatures deviceFeatures = {};
-    deviceFeatures.samplerAnisotropy = VK_TRUE;
-
-    VkDeviceCreateInfo createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    createInfo.pQueueCreateInfos = &queueCreateInfo;
-    createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
-    createInfo.pQueueCreateInfos = queueCreateInfos.data();
-    createInfo.pEnabledFeatures = &deviceFeatures;
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
-    createInfo.ppEnabledExtensionNames = deviceExtensions.data();
-
-    std::vector<const char*> validationLayers;//
-    for(auto &x : m_initInfo.enabledLayers)
-        validationLayers.push_back(x.data());
-
-    createInfo.enabledLayerCount   = static_cast<uint32_t>(validationLayers.size());
-    createInfo.ppEnabledLayerNames = validationLayers.data();
-
-    //===================================================
-    VkPhysicalDeviceFeatures2 deviceFeaturesExt;
-    deviceFeaturesExt.features = deviceFeatures;
-
-    createInfo.pNext = &deviceFeaturesExt;
-
-    createInfo.pEnabledFeatures = nullptr;
-
-    //===================================================
-
-    if( VkResult::VK_SUCCESS != vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device) )
-    {
-        throw std::runtime_error("Failed to create device");
-    }
-
-    vkGetDeviceQueue(m_device, static_cast<uint32_t>(m_graphicsQueueIndex), 0, &m_graphicsQueue);
-    vkGetDeviceQueue(m_device, static_cast<uint32_t>(m_presentQueueIndex ), 0, &m_presentQueue);
-    return  m_device;
 }
 
 inline void SDLVulkanWindow::_selectQueueFamily()
@@ -824,7 +707,8 @@ inline void SDLVulkanWindow::createVulkanInstance(InstanceInitilizationInfo2 con
     assert(m_window);
 
     //=================================================================
-    m_initInfo2.instance.enabledLayers = I.enabledLayers;
+    m_initInfo2.instance = I;
+
     //=================================================================
     // Make sure there are no duplicate layers
     //=================================================================
@@ -856,7 +740,7 @@ inline void SDLVulkanWindow::createVulkanInstance(InstanceInitilizationInfo2 con
         {
             extensionSet.insert(e);
         }
-        if( I.debugCallback ) // add the debug report extension
+        if( m_initInfo2.instance.debugCallback ) // add the debug report extension
         {
             extensionSet.insert(VK_EXT_DEBUG_REPORT_EXTENSION_NAME)   ;
         }
@@ -898,6 +782,11 @@ inline void SDLVulkanWindow::createVulkanInstance(InstanceInitilizationInfo2 con
         throw std::runtime_error("Failed to create Vulkan Instance");
     }
     m_instance = instance;
+
+    if( m_initInfo2.instance.debugCallback )
+    {
+        m_debugCallback = _createDebug(m_initInfo2.instance.debugCallback);
+    }
 }
 
 inline void SDLVulkanWindow::createVulkanSurface(SurfaceInitilizationInfo2 const & I)
@@ -1006,47 +895,7 @@ inline void SDLVulkanWindow::createVulkanDevice(const DeviceInitilizationInfo2 &
 }
 
 
-inline VkInstance SDLVulkanWindow::_createInstance()
-{
-    using namespace std;
-
-    assert(m_window);
-
-    auto extNames = getAvailableVulkanExtensions();
-
-   // vector<const char *> validationLayers;
-    vector<const char *> extensionNames;
-    for(auto & e : extNames) extensionNames.push_back( e.data() );
-
-
-    VkApplicationInfo appInfo = {};
-    appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = "App name";
-    appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.pEngineName = "No Engine";
-    appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    //appInfo.apiVersion = VK_API_VERSION_1_0;
-    appInfo.apiVersion = m_initInfo.vulkanVersion;
-
-    vector<const char*> validationLayers;
-    for(auto & x : m_initInfo.enabledLayers)
-        validationLayers.push_back(x.data());
-
-    VkInstanceCreateInfo instanceCreateInfo = {};
-    instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    instanceCreateInfo.pApplicationInfo = &appInfo;
-    instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-    instanceCreateInfo.ppEnabledLayerNames = validationLayers.data();
-    instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(extensionNames.size());
-    instanceCreateInfo.ppEnabledExtensionNames = extensionNames.data();
-
-    VkInstance instance;
-    if( VkResult::VK_SUCCESS != vkCreateInstance(&instanceCreateInfo, nullptr, &instance) )
-    {
-        throw std::runtime_error("Failed to create Vulkan Instance");
-    }
-    return instance;
 }
-}
+
 
 #endif
