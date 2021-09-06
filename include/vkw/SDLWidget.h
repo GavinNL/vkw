@@ -21,12 +21,14 @@ namespace vkw {
 class SDLVulkanWidget : public SDLVulkanWindow
 {
 public:
-    struct CreateInfo  : public InitilizationInfo,
-                         public SurfaceInitilizationInfo
+    struct CreateInfo
     {
-        std::string windowTitle;
-        uint32_t width;
-        uint32_t height;
+        std::string                windowTitle;
+        uint32_t                   width;
+        uint32_t                   height;
+        InstanceInitilizationInfo2 instanceInfo;
+        DeviceInitilizationInfo2   deviceInfo;
+        SurfaceInitilizationInfo2  surfaceInfo;
     };
 
     ~SDLVulkanWidget()
@@ -44,9 +46,11 @@ public:
                      static_cast<int>(C.width),
                      static_cast<int>(C.height));
 
-        createVulkanInstance(C);
+        createVulkanInstance(C.instanceInfo);
 
-        initSurface(C);
+        createVulkanSurface(C.surfaceInfo);
+
+        createVulkanDevice(C.deviceInfo);
     }
 
     void finalize(Application * app)

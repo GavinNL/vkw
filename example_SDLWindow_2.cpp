@@ -40,35 +40,16 @@ int main(int argc, char *argv[])
 
     // 3. Create the surface
     vkw::SDLVulkanWindow::SurfaceInitilizationInfo2 surfaceInfo;
+    surfaceInfo.depthFormat          = VkFormat::VK_FORMAT_D32_SFLOAT_S8_UINT;
+    surfaceInfo.presentMode          = VK_PRESENT_MODE_FIFO_KHR;
+    surfaceInfo.additionalImageCount = 1;// how many additional swapchain images should we create ( total = min_images + additionalImageCount
     window->createVulkanSurface(surfaceInfo);
 
     // 4. Create the device
     vkw::SDLVulkanWindow::DeviceInitilizationInfo2 deviceInfo;
+    deviceInfo.deviceExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
     window->createVulkanDevice(deviceInfo);
 
-
-    // 2. initialize the vulkan instance
-    vkw::SDLVulkanWindow::InitilizationInfo info;
-
-    info.callback = VulkanReportFunc;
-    // info.enabledLayers.clear();     // clear the default layers/extensions if you do not want them.
-    // info.enabledExtensions.clear(); // clear the default layers/extensions if you do not want them.
-
-    window->createVulkanInstance(info);
-
-
-
-//    // 3. Create the following objects:
-//    //    instance, physical device, device, graphics/present queues,
-//    //    swap chain, depth buffer, render pass and framebuffers
-//    vkw::SDLVulkanWindow::SurfaceInitilizationInfo surfaceInfo;
-//
-//    //surfaceInfo.depthFormat = VkFormat::VK_FORMAT_UNDEFINED; // set to undefined to disable depth image creation
-//    surfaceInfo.additionalImageCount = 1; // create one additional image in the swap chain for triple buffering.
-//    surfaceInfo.enabledFeatures.tessellationShader = 1;
-//
-//    // Only call this once.
-//    window->initSurface(surfaceInfo);
 
 
     bool running=true;
@@ -122,6 +103,7 @@ int main(int argc, char *argv[])
 
     // delete the window to destroy all objects
     // that were created.
+    window->destroy();
     delete window;
 
     SDL_Quit();

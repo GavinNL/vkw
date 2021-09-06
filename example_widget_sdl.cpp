@@ -47,9 +47,9 @@ int main(int argc, char *argv[])
     c.width       = 1024;
     c.height      = 768;
     c.windowTitle = "My Vulkan Application Window";
-    c.depthFormat = VK_FORMAT_D32_SFLOAT_S8_UINT;
-    c.callback    = &VulkanReportFunc;
 
+    c.surfaceInfo.depthFormat    = VK_FORMAT_D32_SFLOAT_S8_UINT;
+    c.instanceInfo.debugCallback = &VulkanReportFunc;
 
     // create the window and initialize
     vulkanWindow.create(c);
