@@ -1,6 +1,9 @@
 [requires]
 sdl2/2.0.14@bincrafters/stable
-vulkan-loader/1.2.172
+#vulkan-loader/1.2.172
+
+vulkan-loader/1.2.182
+vulkan-headers/1.2.182
 
 [options]
 sdl2:jack=False

@@ -35,6 +35,8 @@ class SDLVulkanWindow : public BaseWidget
         #endif
         uint32_t                 vulkanVersion     = VKW_DEFAULT_VULKAN_VERSION;
     };
+
+
     struct SurfaceInitilizationInfo2
     {
         VkFormat         depthFormat          = VkFormat::VK_FORMAT_D32_SFLOAT_S8_UINT;
@@ -44,15 +46,26 @@ class SDLVulkanWindow : public BaseWidget
 
     struct DeviceInitilizationInfo2
     {
-        std::vector<std::string> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-        VkPhysicalDeviceFeatures enabledFeatures = {};
+        std::vector<std::string>         deviceExtensions  = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
+
+        // the values enabledFeaturesXX structs can be set to true
+        // to enable the features. you do not need to set the sNext
+        // pointers. They will automatically be set when we create the device
+
+        // if you want enable non KHR extensions, then you will have to set
+        // the enabledFeatures12.pNext value yourself
+        VkPhysicalDeviceFeatures2        enabledFeatures   = {};
+        VkPhysicalDeviceVulkan11Features enabledFeatures11 = {};
+        VkPhysicalDeviceVulkan12Features enabledFeatures12 = {};
+
     };
 
     struct
     {
         InstanceInitilizationInfo2 instance;
         SurfaceInitilizationInfo2  surface;
-        DeviceInitilizationInfo2  device;
+        DeviceInitilizationInfo2   device;
     } m_initInfo2;
 
     void createVulkanInstance(InstanceInitilizationInfo2 const & I);
@@ -156,6 +169,9 @@ class SDLVulkanWindow : public BaseWidget
         _createSwapchain(m_additionalImages);
     }
 
+    static VkPhysicalDeviceFeatures2 getSupportedDeviceFeatures(VkPhysicalDevice physicalDevice);
+    static VkPhysicalDeviceVulkan11Features getSupportedDeviceFeatures11(VkPhysicalDevice physicalDevice);
+    static VkPhysicalDeviceVulkan12Features getSupportedDeviceFeatures12(VkPhysicalDevice physicalDevice);
 protected:
     SDL_Window *             m_window   = nullptr;
     VkInstance               m_instance = VK_NULL_HANDLE;

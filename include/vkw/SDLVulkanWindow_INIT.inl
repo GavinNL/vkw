@@ -798,6 +798,43 @@ inline void SDLVulkanWindow::createVulkanSurface(SurfaceInitilizationInfo2 const
     SDL_Vulkan_CreateSurface(m_window, m_instance, &m_surface);
 }
 
+VkPhysicalDeviceFeatures2 SDLVulkanWindow::getSupportedDeviceFeatures(VkPhysicalDevice physicalDevice)
+{
+    VkPhysicalDeviceFeatures2 availableDeviceFeatures2 = {};
+
+    availableDeviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2_KHR;
+    availableDeviceFeatures2.pNext = nullptr;
+
+    vkGetPhysicalDeviceFeatures2(physicalDevice, &availableDeviceFeatures2);
+
+    return availableDeviceFeatures2;
+}
+
+VkPhysicalDeviceVulkan11Features SDLVulkanWindow::getSupportedDeviceFeatures11(VkPhysicalDevice physicalDevice)
+{
+    VkPhysicalDeviceVulkan11Features v11 = {};
+    v11.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+
+    VkPhysicalDeviceFeatures2 availableDeviceFeatures2 = {};
+    availableDeviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2_KHR;
+    availableDeviceFeatures2.pNext = &v11;
+
+    vkGetPhysicalDeviceFeatures2(physicalDevice, &availableDeviceFeatures2);
+    return v11;
+}
+VkPhysicalDeviceVulkan12Features SDLVulkanWindow::getSupportedDeviceFeatures12(VkPhysicalDevice physicalDevice)
+{
+    VkPhysicalDeviceVulkan12Features v12 = {};
+    v12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+
+    VkPhysicalDeviceFeatures2 availableDeviceFeatures2 = {};
+    availableDeviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2_KHR;
+    availableDeviceFeatures2.pNext = &v12;
+
+    vkGetPhysicalDeviceFeatures2(physicalDevice, &availableDeviceFeatures2);
+    return v12;
+}
+
 inline void SDLVulkanWindow::createVulkanDevice(const DeviceInitilizationInfo2 &I)
 {
     assert(m_physicalDevice != VK_NULL_HANDLE);
@@ -849,22 +886,54 @@ inline void SDLVulkanWindow::createVulkanDevice(const DeviceInitilizationInfo2 &
     // are supported. If there are any that are not supported, turn them off
     //==============================================================================
     {
-        VkPhysicalDeviceFeatures availableDeviceFeatures = {};
-        vkGetPhysicalDeviceFeatures(m_physicalDevice, &availableDeviceFeatures);
-        VkBool32 *avilFeat      = &availableDeviceFeatures.robustBufferAccess;
-        VkBool32 *availFeatEnd  = avilFeat + sizeof(availableDeviceFeatures) / sizeof(VkBool32);
-        VkBool32 *requestedFeat = &m_initInfo2.device.enabledFeatures.robustBufferAccess;
-
-        while( avilFeat != availFeatEnd)
+        // v1.0
         {
-            *requestedFeat &= *avilFeat;
+            auto sup10 = getSupportedDeviceFeatures(m_physicalDevice);
 
-            avilFeat++;
-            requestedFeat++;
+            VkBool32 *avilFeat      = &sup10.features.robustBufferAccess;
+            VkBool32 *availFeatEnd  = &sup10.features.inheritedQueries;
+            VkBool32 *requestedFeat = &m_initInfo2.device.enabledFeatures.features.robustBufferAccess;
+
+            while( avilFeat != availFeatEnd)
+            {
+                *requestedFeat++ &= *avilFeat++;
+            }
+        }
+
+        {
+            auto sup11 = getSupportedDeviceFeatures11(m_physicalDevice);
+            // v1.1
+            VkBool32 *avilFeat      = &sup11.storageBuffer16BitAccess;
+            VkBool32 *availFeatEnd  = &sup11.shaderDrawParameters;
+            VkBool32 *requestedFeat = &m_initInfo2.device.enabledFeatures11.storageBuffer16BitAccess;
+
+            while( avilFeat != availFeatEnd)
+            {
+                *requestedFeat++ &= *avilFeat++;
+            }
+        }
+
+        {
+            auto sup12 = getSupportedDeviceFeatures12(m_physicalDevice);
+            // v1.1
+            VkBool32 *avilFeat      = &sup12.samplerMirrorClampToEdge;
+            VkBool32 *availFeatEnd  = &sup12.subgroupBroadcastDynamicId;
+            VkBool32 *requestedFeat = &m_initInfo2.device.enabledFeatures12.samplerMirrorClampToEdge;
+
+            while( avilFeat != availFeatEnd)
+            {
+                *requestedFeat++ &= *avilFeat++;
+            }
         }
     }
     //==============================================================================
 
+    m_initInfo2.device.enabledFeatures.sType   = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2_KHR;
+    m_initInfo2.device.enabledFeatures11.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+    m_initInfo2.device.enabledFeatures12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+
+    m_initInfo2.device.enabledFeatures.pNext   = &m_initInfo2.device.enabledFeatures11;
+    m_initInfo2.device.enabledFeatures11.pNext = &m_initInfo2.device.enabledFeatures12;
 
     //https://en.wikipedia.org/wiki/Anisotropic_filtering
     //VkPhysicalDeviceFeatures deviceFeatures = {};
@@ -891,14 +960,9 @@ inline void SDLVulkanWindow::createVulkanDevice(const DeviceInitilizationInfo2 &
 
     //===================================================
     // enable features using the extended method
+    m_initInfo2.device.enabledFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
 
-    VkPhysicalDeviceFeatures2 deviceFeaturesExt = {};
-
-    deviceFeaturesExt.sType    = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-    deviceFeaturesExt.features = m_initInfo2.device.enabledFeatures;
-
-    createInfo.pNext = &deviceFeaturesExt;
-
+    createInfo.pNext = &m_initInfo2.device.enabledFeatures;
     //===================================================
 
     if( VkResult::VK_SUCCESS != vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device) )

@@ -34,8 +34,8 @@ if( VKW_BUILD_EXAMPLES )
     find_package(Vulkan REQUIRED)
     find_package(SDL2 REQUIRED)
 
-    add_executable( example_SDLWindow example_SDLWindow.cpp )
-    target_link_libraries(example_SDLWindow  SDL2::SDL2  vkw::vkw Vulkan::Vulkan)
+    #add_executable( example_SDLWindow example_SDLWindow.cpp )
+    #target_link_libraries(example_SDLWindow  SDL2::SDL2  vkw::vkw Vulkan::Vulkan)
 
     add_executable( example_SDLWindow_2 example_SDLWindow_2.cpp )
     target_link_libraries(example_SDLWindow_2  SDL2::SDL2  vkw::vkw Vulkan::Vulkan)
