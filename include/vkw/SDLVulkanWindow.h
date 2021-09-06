@@ -36,7 +36,6 @@ class SDLVulkanWindow : public BaseWidget
         uint32_t                 vulkanVersion     = VKW_DEFAULT_VULKAN_VERSION;
     };
 
-
     struct SurfaceInitilizationInfo2
     {
         VkFormat         depthFormat          = VkFormat::VK_FORMAT_D32_SFLOAT_S8_UINT;
@@ -61,39 +60,96 @@ class SDLVulkanWindow : public BaseWidget
 
     };
 
-    struct
-    {
-        InstanceInitilizationInfo2 instance;
-        SurfaceInitilizationInfo2  surface;
-        DeviceInitilizationInfo2   device;
-    } m_initInfo2;
-
-    void createVulkanInstance(InstanceInitilizationInfo2 const & I);
-    void createVulkanSurface(SurfaceInitilizationInfo2 const & I);
-    void createPhysicalDevice();
-    void createVulkanDevice(DeviceInitilizationInfo2 const & I);
-
+    //=================================================================
     // 1. Create the  window first using this function
     void createWindow(const char *title, int x, int y, int w, int h, Uint32 flags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
 
+    // 2. Create a vulkan instance
+    void createVulkanInstance(InstanceInitilizationInfo2 const & I);
 
-    std::vector<std::string> getAvailableVulkanExtensions();
+    // 3. create the vulkan surface
+    void createVulkanSurface(SurfaceInitilizationInfo2 const & I);
+
+    // 4. create the physical device by picking the most appropriate one
+    void createVulkanPhysicalDevice();
+
+    // 5. Create the logical device
+    void createVulkanDevice(DeviceInitilizationInfo2 const & I);
+
+    //=================================================================
+
+
+    /**
+     * @brief destroy
+     *
+     * When you are done with the window, you must call this
+     * too release any vulkan resources associated with the
+     * window.
+     */
+    void destroy();
+
+    /**
+     * @brief getRequiredVulkanExtensions
+     * @return
+     *
+     * Get the required vulkan extensions required to
+     * be able to present to SDL windows
+     */
+    std::vector<std::string> getRequiredVulkanExtensions();
     std::vector<std::string> getAvailableVulkanLayers();
 
 
     ~SDLVulkanWindow();
 
-    void destroy();
+
 
     //===================================================================
     // The implementation for the following functions are in
     //  SDLVulkanWindow_USAGE.cpp
     //===================================================================
+
+    /**
+     * @brief acquireNextFrame
+     * @return
+     *
+     * Get the next available frame. The Frame contains
+     * information about which swapchain image index to use
+     * a handle to a command buffer and the command pool should
+     * you need it.
+     *
+     * It also contains semaphores to handle synhronization
+     */
     Frame acquireNextFrame();
 
-    void  submitFrameCommandBuffer(VkCommandBuffer cb, VkSemaphore wait, VkSemaphore signal, VkFence fence);
-    void  submitFrame(Frame & C);
-    void  presentFrame(Frame F);
+    /**
+     * @brief submitFrame
+     * @param C
+     *
+     * Submt the the frame to the GPU to process.
+     * The command buffer C.commandBuffer will be
+     * sent to the GPU for processing.
+     */
+    void  submitFrame(Frame const & C);
+
+    void  submitFrameCommandBuffer(VkCommandBuffer cb,
+                                   VkSemaphore wait,
+                                   VkSemaphore signal,
+                                   VkFence fence);
+
+    /**
+     * @brief presentFrame
+     * @param F
+     *
+     * Present the swapchain frame which was
+     * acquired by acquireNextFrame();
+     */
+    void  presentFrame(const Frame &F);
+
+    /**
+     * @brief waitForPresent
+     *
+     * Wait until the device is idle
+     */
     void  waitForPresent();
 
     SDL_Window* getSDLWindow() const
@@ -166,51 +222,47 @@ class SDLVulkanWindow : public BaseWidget
     void rebuildSwapchain()
     {
         _destroySwapchain(false);
-        _createSwapchain(m_additionalImages);
+        _createSwapchain(m_initInfo2.surface.additionalImageCount);
     }
 
     static VkPhysicalDeviceFeatures2 getSupportedDeviceFeatures(VkPhysicalDevice physicalDevice);
     static VkPhysicalDeviceVulkan11Features getSupportedDeviceFeatures11(VkPhysicalDevice physicalDevice);
     static VkPhysicalDeviceVulkan12Features getSupportedDeviceFeatures12(VkPhysicalDevice physicalDevice);
 protected:
-    SDL_Window *             m_window   = nullptr;
-    VkInstance               m_instance = VK_NULL_HANDLE;
-    VkSurfaceKHR             m_surface  = VK_NULL_HANDLE;
-    VkPhysicalDevice         m_physicalDevice;
 
-    int32_t  m_graphicsQueueIndex;
-    int32_t  m_presentQueueIndex;
-    VkDevice m_device = VK_NULL_HANDLE;
+    struct
+    {
+        InstanceInitilizationInfo2 instance;
+        SurfaceInitilizationInfo2  surface;
+        DeviceInitilizationInfo2   device;
+    } m_initInfo2;
 
-    VkQueue m_graphicsQueue = VK_NULL_HANDLE;
-    VkQueue m_presentQueue  = VK_NULL_HANDLE;
-
-    VkSurfaceCapabilitiesKHR m_surfaceCapabilities;
-    VkSurfaceFormatKHR       m_surfaceFormat;
-    VkExtent2D               m_swapchainSize;
-    uint32_t                 m_additionalImages = 0;
-    VkSwapchainKHR           m_swapchain        = VK_NULL_HANDLE;
-    //VkPresentModeKHR         m_presentMode;
-
-    std::vector<VkImage>     m_swapchainImages;
-    std::vector<VkImageView> m_swapchainImageViews;
-
-    //VkFormat       m_depthFormat             = VK_FORMAT_UNDEFINED;
-    VkImage        m_depthStencil            = VK_NULL_HANDLE;
-    VkImageView    m_depthStencilImageView   = VK_NULL_HANDLE;
-    VkDeviceMemory m_depthStencilImageMemory = VK_NULL_HANDLE;
-
-    VkRenderPass               m_renderPass = VK_NULL_HANDLE;
+    SDL_Window *               m_window   = nullptr;
+    VkInstance                 m_instance = VK_NULL_HANDLE;
+    VkSurfaceKHR               m_surface  = VK_NULL_HANDLE;
+    VkPhysicalDevice           m_physicalDevice;
+    int32_t                    m_graphicsQueueIndex;
+    int32_t                    m_presentQueueIndex;
+    VkDevice                   m_device        = VK_NULL_HANDLE;
+    VkQueue                    m_graphicsQueue = VK_NULL_HANDLE;
+    VkQueue                    m_presentQueue  = VK_NULL_HANDLE;
+    VkSurfaceCapabilitiesKHR   m_surfaceCapabilities;
+    VkSurfaceFormatKHR         m_surfaceFormat;
+    VkExtent2D                 m_swapchainSize;
+    VkSwapchainKHR             m_swapchain = VK_NULL_HANDLE;
+    std::vector<VkImage>       m_swapchainImages;
+    std::vector<VkImageView>   m_swapchainImageViews;
+    VkImage                    m_depthStencil            = VK_NULL_HANDLE;
+    VkImageView                m_depthStencilImageView   = VK_NULL_HANDLE;
+    VkDeviceMemory             m_depthStencilImageMemory = VK_NULL_HANDLE;
+    VkRenderPass               m_renderPass              = VK_NULL_HANDLE;
     std::vector<VkFramebuffer> m_swapchainFrameBuffers;
     std::vector<VkCommandPool> m_commandPools;
-
-    std::vector<VkFence>     m_fences;
-    std::vector<VkSemaphore> m_imageAvailableSemaphores;
-    std::vector<VkSemaphore> m_renderCompleteSemaphores;
-
-    VkDebugReportCallbackEXT m_debugCallback = VK_NULL_HANDLE;
-
-    std::vector<Frame> m_frames;
+    std::vector<VkFence>       m_fences;
+    std::vector<VkSemaphore>   m_imageAvailableSemaphores;
+    std::vector<VkSemaphore>   m_renderCompleteSemaphores;
+    VkDebugReportCallbackEXT   m_debugCallback = VK_NULL_HANDLE;
+    std::vector<Frame>         m_frames;
 
 private:
     SDL_Window *     _createWindow();

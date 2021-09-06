@@ -33,42 +33,36 @@ int main(int argc, char *argv[])
     // 1. create the window
     window->createWindow("Title", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024,768);
 
-    // 2. initialize the vulkan instance
-    vkw::SDLVulkanWindow::InitilizationInfo info;
+    // 2. Create the Instance
+    vkw::SDLVulkanWindow::InstanceInitilizationInfo2 instanceInfo;
+    instanceInfo.debugCallback = &VulkanReportFunc;
+    instanceInfo.vulkanVersion = VK_MAKE_VERSION(1, 0, 0);
+    instanceInfo.enabledExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 
-    info.callback = VulkanReportFunc;
-    // info.enabledLayers.clear();     // clear the default layers/extensions if you do not want them.
-    // info.enabledExtensions.clear(); // clear the default layers/extensions if you do not want them.
+    window->createVulkanInstance(instanceInfo);
 
-    window->createVulkanInstance( info);
+    // 3. Create the surface
+    vkw::SDLVulkanWindow::SurfaceInitilizationInfo2 surfaceInfo;
+    surfaceInfo.depthFormat          = VkFormat::VK_FORMAT_D32_SFLOAT_S8_UINT;
+    surfaceInfo.presentMode          = VK_PRESENT_MODE_FIFO_KHR;
+    surfaceInfo.additionalImageCount = 1;// how many additional swapchain images should we create ( total = min_images + additionalImageCount
+    window->createVulkanSurface(surfaceInfo);
 
+    window->createVulkanPhysicalDevice();
 
-    {
-        auto ext = window->getAvailableVulkanExtensions();
-        for(auto & e : ext)
-        {
-            std::cout << "Extension: " << e << std::endl;
-        }
-    }
-    {
-        auto ext = window->getAvailableVulkanLayers();
-        for(auto & e : ext)
-        {
-            std::cout << "Layers: " << e << std::endl;
-        }
-    }
+    // 4. Create the device
+    vkw::SDLVulkanWindow::DeviceInitilizationInfo2 deviceInfo;
+    deviceInfo.deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+    deviceInfo.deviceExtensions.push_back(VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME);
 
-    // 3. Create the following objects:
-    //    instance, physical device, device, graphics/present queues,
-    //    swap chain, depth buffer, render pass and framebuffers
-    vkw::SDLVulkanWindow::SurfaceInitilizationInfo surfaceInfo;
+    // enable a new extended feature
+    VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT dynamicVertexState = {};
+    dynamicVertexState.sType           = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_INPUT_DYNAMIC_STATE_FEATURES_EXT;
+    dynamicVertexState.vertexInputDynamicState = true;
+    deviceInfo.enabledFeatures12.pNext = &dynamicVertexState;
 
-    //surfaceInfo.depthFormat = VkFormat::VK_FORMAT_UNDEFINED; // set to undefined to disable depth image creation
-    surfaceInfo.additionalImageCount = 1; // create one additional image in the swap chain for triple buffering.
-    surfaceInfo.enabledFeatures.tessellationShader = 1;
+    window->createVulkanDevice(deviceInfo);
 
-    // Only call this once.
-    window->initSurface(surfaceInfo);
 
 
     bool running=true;
@@ -122,6 +116,7 @@ int main(int argc, char *argv[])
 
     // delete the window to destroy all objects
     // that were created.
+    window->destroy();
     delete window;
 
     SDL_Quit();

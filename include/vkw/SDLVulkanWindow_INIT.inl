@@ -19,7 +19,7 @@ inline void SDLVulkanWindow::createWindow(const char *title, int x, int y, int w
     m_window = SDL_CreateWindow( title, x, y,w,h, flags);
 }
 
-inline std::vector<std::string> SDLVulkanWindow::getAvailableVulkanExtensions()
+inline std::vector<std::string> SDLVulkanWindow::getRequiredVulkanExtensions()
 {
     std::vector<std::string> outExtensions;
     // Figure out the amount of extensions vulkan needs to interface with the os windowing system
@@ -254,12 +254,18 @@ inline void SDLVulkanWindow::destroy()
         {
             func(m_instance, m_debugCallback, nullptr);
         }
+        m_debugCallback = nullptr;
     }
 
     if( m_instance)
     {
         vkDestroyInstance(m_instance, nullptr);
         m_instance = VK_NULL_HANDLE;
+    }
+    if( m_window)
+    {
+        SDL_DestroyWindow(m_window);
+        m_window = nullptr;
     }
 }
 
@@ -685,7 +691,7 @@ inline void SDLVulkanWindow::_selectQueueFamily()
     m_presentQueueIndex = presentIndex;
 }
 
-inline void SDLVulkanWindow::createPhysicalDevice()
+inline void SDLVulkanWindow::createVulkanPhysicalDevice()
 {
     using namespace std;
     vector<VkPhysicalDevice> physicalDevices;
@@ -748,7 +754,7 @@ inline void SDLVulkanWindow::createVulkanInstance(InstanceInitilizationInfo2 con
     vector<const char *> extensionNames;
 
     {
-        auto requiredExtensions = getAvailableVulkanExtensions();
+        auto requiredExtensions = getRequiredVulkanExtensions();
         m_initInfo2.instance.enabledExtensions.insert(m_initInfo2.instance.enabledExtensions.end(), requiredExtensions.begin(),requiredExtensions.end());
     }
     {

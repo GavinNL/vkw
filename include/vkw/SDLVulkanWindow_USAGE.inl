@@ -47,7 +47,7 @@ inline Frame SDLVulkanWindow::acquireNextFrame()
     //F.clearDepth              = {1.0f, 0};
 }
 
-inline void  SDLVulkanWindow::submitFrame(Frame & C)
+inline void  SDLVulkanWindow::submitFrame(const Frame &C)
 {
     submitFrameCommandBuffer(C.commandBuffer, C.imageAvailableSemaphore, C.renderCompleteSemaphore, C.fence);
 }
@@ -56,27 +56,27 @@ inline void  SDLVulkanWindow::submitFrameCommandBuffer(VkCommandBuffer cb, VkSem
 {
     VkPipelineStageFlags waitDestStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
 
-    VkSubmitInfo submitInfo = {};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores    = &wait;
-    submitInfo.pWaitDstStageMask  = &waitDestStageMask;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &cb;
+    VkSubmitInfo submitInfo         = {};
+    submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.waitSemaphoreCount   = 1;
+    submitInfo.pWaitSemaphores      = &wait;
+    submitInfo.pWaitDstStageMask    = &waitDestStageMask;
+    submitInfo.commandBufferCount   = 1;
+    submitInfo.pCommandBuffers      = &cb;
     submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = &signal;
+    submitInfo.pSignalSemaphores    = &signal;
     vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, fence);
 }
 
-inline void SDLVulkanWindow::presentFrame(Frame F)
+inline void SDLVulkanWindow::presentFrame(Frame const &F)
 {
     VkPresentInfoKHR presentInfo = {};
-    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = &F.renderCompleteSemaphore;
-    presentInfo.swapchainCount = 1;
-    presentInfo.pSwapchains   = &m_swapchain;
-    presentInfo.pImageIndices = &F.swapchainIndex;
+    presentInfo.pWaitSemaphores    = &F.renderCompleteSemaphore;
+    presentInfo.swapchainCount     = 1;
+    presentInfo.pSwapchains        = &m_swapchain;
+    presentInfo.pImageIndices      = &F.swapchainIndex;
     vkQueuePresentKHR(m_presentQueue, &presentInfo);
 }
 

@@ -50,6 +50,8 @@ public:
 
         createVulkanSurface(C.surfaceInfo);
 
+        createVulkanPhysicalDevice();
+
         createVulkanDevice(C.deviceInfo);
     }
 
