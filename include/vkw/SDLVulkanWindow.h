@@ -287,6 +287,4 @@ private:
 };
 }
 
-#include "SDLVulkanWindow_INIT.inl"
-#include "SDLVulkanWindow_USAGE.inl"
 #endif

@@ -12,14 +12,14 @@
 namespace vkw
 {
 
-inline void SDLVulkanWindow::createWindow(const char *title, int x, int y, int w,
+void SDLVulkanWindow::createWindow(const char *title, int x, int y, int w,
                                                       int h, Uint32 flags)
 {
     flags |= SDL_WINDOW_VULKAN;
     m_window = SDL_CreateWindow( title, x, y,w,h, flags);
 }
 
-inline std::vector<std::string> SDLVulkanWindow::getRequiredVulkanExtensions()
+std::vector<std::string> SDLVulkanWindow::getRequiredVulkanExtensions()
 {
     std::vector<std::string> outExtensions;
     // Figure out the amount of extensions vulkan needs to interface with the os windowing system
@@ -52,7 +52,7 @@ inline std::vector<std::string> SDLVulkanWindow::getRequiredVulkanExtensions()
     return outExtensions;
 }
 
-inline std::vector<std::string> SDLVulkanWindow::getAvailableVulkanLayers()
+std::vector<std::string> SDLVulkanWindow::getAvailableVulkanLayers()
 {
     std::vector<std::string> outLayers;
 
@@ -91,7 +91,7 @@ inline std::vector<std::string> SDLVulkanWindow::getAvailableVulkanLayers()
     return outLayers;
 }
 
-inline void SDLVulkanWindow::_destroySwapchain(bool destroyRenderPass)
+void SDLVulkanWindow::_destroySwapchain(bool destroyRenderPass)
 {
     if( m_renderPass != VK_NULL_HANDLE)
     {
@@ -134,7 +134,7 @@ inline void SDLVulkanWindow::_destroySwapchain(bool destroyRenderPass)
     }
 }
 
-inline void SDLVulkanWindow::_createPerFrameObjects()
+void SDLVulkanWindow::_createPerFrameObjects()
 {
     m_fences.resize( m_swapchainImages.size());
     m_renderCompleteSemaphores.resize( m_swapchainImages.size());
@@ -202,12 +202,12 @@ inline void SDLVulkanWindow::_createPerFrameObjects()
     }
 }
 
-inline SDLVulkanWindow::~SDLVulkanWindow()
+SDLVulkanWindow::~SDLVulkanWindow()
 {
     destroy();
 }
 
-inline void SDLVulkanWindow::destroy()
+void SDLVulkanWindow::destroy()
 {
     for(auto & f : m_fences)
     {
@@ -293,7 +293,7 @@ static VkBool32 getSupportedDepthFormat(VkPhysicalDevice physicalDevice, VkForma
         return false;
 }
 
-inline void SDLVulkanWindow::_createFramebuffers()
+void SDLVulkanWindow::_createFramebuffers()
 {
     (void)getSupportedDepthFormat;
     m_swapchainFrameBuffers.resize(m_swapchainImageViews.size());
@@ -322,7 +322,7 @@ inline void SDLVulkanWindow::_createFramebuffers()
     }
 }
 
-inline void SDLVulkanWindow::_createRenderPass()
+void SDLVulkanWindow::_createRenderPass()
 {
     using namespace std;
     vector<VkAttachmentDescription> attachments(1);
@@ -393,7 +393,7 @@ inline void SDLVulkanWindow::_createRenderPass()
         }
 }
 
-inline void SDLVulkanWindow::_createDepthStencil()
+void SDLVulkanWindow::_createDepthStencil()
 {
     if( getDepthFormat() == VK_FORMAT_UNDEFINED)
         return;
@@ -426,7 +426,7 @@ inline void SDLVulkanWindow::_createDepthStencil()
 
 }
 
-inline std::pair<VkImage, VkDeviceMemory> SDLVulkanWindow::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
+std::pair<VkImage, VkDeviceMemory> SDLVulkanWindow::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
                         VkImageUsageFlags usage, VkMemoryPropertyFlags properties)
 {
     auto findMemoryType = [this](uint32_t typeFilter, VkMemoryPropertyFlags props)
@@ -485,7 +485,7 @@ inline std::pair<VkImage, VkDeviceMemory> SDLVulkanWindow::createImage(uint32_t 
     return {image, imageMemory};
 }
 
-inline VkResult createDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCallbackCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pCallback)
+VkResult createDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCallbackCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pCallback)
 {
     auto func = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT"));
     if (func != nullptr)
@@ -498,7 +498,7 @@ inline VkResult createDebugReportCallbackEXT(VkInstance instance, const VkDebugR
     }
 }
 
-inline VkDebugReportCallbackEXT SDLVulkanWindow::_createDebug(PFN_vkDebugReportCallbackEXT _callback)
+VkDebugReportCallbackEXT SDLVulkanWindow::_createDebug(PFN_vkDebugReportCallbackEXT _callback)
 {
     VkDebugReportCallbackCreateInfoEXT debugCallbackCreateInfo = {};
     debugCallbackCreateInfo.sType                              = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
@@ -515,7 +515,7 @@ inline VkDebugReportCallbackEXT SDLVulkanWindow::_createDebug(PFN_vkDebugReportC
     return outCallback;
 }
 
-inline void SDLVulkanWindow::_createSwapchain(uint32_t additionalImages=1)
+void SDLVulkanWindow::_createSwapchain(uint32_t additionalImages=1)
 {
     using namespace  std;
 
@@ -648,7 +648,7 @@ inline void SDLVulkanWindow::_createSwapchain(uint32_t additionalImages=1)
     }
 }
 
-inline void SDLVulkanWindow::_selectQueueFamily()
+void SDLVulkanWindow::_selectQueueFamily()
 {
     auto physical_devices = m_physicalDevice;
     auto surface = m_surface;
@@ -691,7 +691,7 @@ inline void SDLVulkanWindow::_selectQueueFamily()
     m_presentQueueIndex = presentIndex;
 }
 
-inline void SDLVulkanWindow::createVulkanPhysicalDevice()
+void SDLVulkanWindow::createVulkanPhysicalDevice()
 {
     using namespace std;
     vector<VkPhysicalDevice> physicalDevices;
@@ -724,7 +724,7 @@ std::vector<std::string> _validateExtension(std::vector<std::string> const & ext
     return out;
 }
 
-inline void SDLVulkanWindow::createVulkanInstance(InstanceInitilizationInfo2 const & I)
+void SDLVulkanWindow::createVulkanInstance(InstanceInitilizationInfo2 const & I)
 {
     using namespace std;
 
@@ -798,7 +798,7 @@ inline void SDLVulkanWindow::createVulkanInstance(InstanceInitilizationInfo2 con
     }
 }
 
-inline void SDLVulkanWindow::createVulkanSurface(SurfaceInitilizationInfo2 const & I)
+void SDLVulkanWindow::createVulkanSurface(SurfaceInitilizationInfo2 const & I)
 {
     m_initInfo2.surface = I;
     SDL_Vulkan_CreateSurface(m_window, m_instance, &m_surface);
@@ -841,7 +841,7 @@ VkPhysicalDeviceVulkan12Features SDLVulkanWindow::getSupportedDeviceFeatures12(V
     return v12;
 }
 
-inline void SDLVulkanWindow::createVulkanDevice(const DeviceInitilizationInfo2 &I)
+void SDLVulkanWindow::createVulkanDevice(const DeviceInitilizationInfo2 &I)
 {
     assert(m_physicalDevice != VK_NULL_HANDLE);
     m_initInfo2.device = I;
@@ -978,6 +978,13 @@ inline void SDLVulkanWindow::createVulkanDevice(const DeviceInitilizationInfo2 &
 
     vkGetDeviceQueue(m_device, static_cast<uint32_t>(m_graphicsQueueIndex), 0, &m_graphicsQueue);
     vkGetDeviceQueue(m_device, static_cast<uint32_t>(m_presentQueueIndex ), 0, &m_presentQueue);
+
+    if( m_swapchain == VK_NULL_HANDLE)
+    {
+        _createSwapchain(m_initInfo2.surface.additionalImageCount);
+        // level 2 initilization objects
+        _createPerFrameObjects();
+    }
 }
 
 
