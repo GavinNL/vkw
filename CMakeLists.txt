@@ -14,13 +14,12 @@ target_link_libraries( vkw INTERFACE)
 
 get_directory_property(vkw_has_parent PARENT_DIRECTORY)
 
-option(VKW_BUILD_EXAMPLES "Build examples" ON)
-
 if(vkw_has_parent)
     # Don't build examples if we are a submodule.
     message("Not building examples")
-    set(VKW_BUILD_EXAMPLES OFF)
-
+    option(VKW_BUILD_EXAMPLES "Build examples" ON)
+else()
+    option(VKW_BUILD_EXAMPLES "Build examples" OFF)
 endif()
 
 
