@@ -51,6 +51,15 @@ int main(int argc, char *argv[])
     c.surfaceInfo.depthFormat    = VK_FORMAT_D32_SFLOAT_S8_UINT;
     c.instanceInfo.debugCallback = &VulkanReportFunc;
 
+    c.deviceInfo.deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+    c.deviceInfo.deviceExtensions.push_back(VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME);
+
+    // enable a new extended feature
+    //VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT dynamicVertexState = {};
+    //dynamicVertexState.sType                    = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_INPUT_DYNAMIC_STATE_FEATURES_EXT;
+    //dynamicVertexState.vertexInputDynamicState  = true;
+    //c.deviceInfo.enabledFeatures12.pNext         = &dynamicVertexState;
+
     // create the window and initialize
     vulkanWindow.create(c);
 
@@ -70,3 +79,6 @@ int main(int argc, char *argv[])
     SDL_Quit();
     return 0;
 }
+
+#include <vkw/SDLVulkanWindow_INIT.inl>
+#include <vkw/SDLVulkanWindow_USAGE.inl>

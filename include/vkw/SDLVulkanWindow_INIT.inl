@@ -651,7 +651,7 @@ void SDLVulkanWindow::_createSwapchain(uint32_t additionalImages=1)
 void SDLVulkanWindow::_selectQueueFamily()
 {
     auto physical_devices = m_physicalDevice;
-    auto surface = m_surface;
+    auto surface          = m_surface;
 
     using namespace std;
     vector<VkQueueFamilyProperties> queueFamilyProperties;
@@ -691,7 +691,7 @@ void SDLVulkanWindow::_selectQueueFamily()
     m_presentQueueIndex = presentIndex;
 }
 
-void SDLVulkanWindow::createVulkanPhysicalDevice()
+bool SDLVulkanWindow::createVulkanPhysicalDevice()
 {
     using namespace std;
     vector<VkPhysicalDevice> physicalDevices;
@@ -705,6 +705,7 @@ void SDLVulkanWindow::createVulkanPhysicalDevice()
     m_physicalDevice = physicalDevices[0];
     //m_physicalDevice = physicalDevices[0];
     //return physicalDevices[0];;
+    return m_physicalDevice != VK_NULL_HANDLE;
 }
 
 std::vector<std::string> _validateExtension(std::vector<std::string> const & ext, std::set<std::string> const & valid)
@@ -798,10 +799,11 @@ void SDLVulkanWindow::createVulkanInstance(InstanceInitilizationInfo2 const & I)
     }
 }
 
-void SDLVulkanWindow::createVulkanSurface(SurfaceInitilizationInfo2 const & I)
+bool SDLVulkanWindow::createVulkanSurface(SurfaceInitilizationInfo2 const & I)
 {
     m_initInfo2.surface = I;
     SDL_Vulkan_CreateSurface(m_window, m_instance, &m_surface);
+    return m_surface != VK_NULL_HANDLE;
 }
 
 VkPhysicalDeviceFeatures2 SDLVulkanWindow::getSupportedDeviceFeatures(VkPhysicalDevice physicalDevice)

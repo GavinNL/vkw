@@ -51,15 +51,16 @@ int main(int argc, char *argv[])
     window->createVulkanPhysicalDevice();
 
     // 4. Create the device
+    //    and add additional extensions that we want to enable
     vkw::SDLVulkanWindow::DeviceInitilizationInfo2 deviceInfo;
     deviceInfo.deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     deviceInfo.deviceExtensions.push_back(VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME);
 
     // enable a new extended feature
     VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT dynamicVertexState = {};
-    dynamicVertexState.sType           = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_INPUT_DYNAMIC_STATE_FEATURES_EXT;
-    dynamicVertexState.vertexInputDynamicState = true;
-    deviceInfo.enabledFeatures12.pNext = &dynamicVertexState;
+    dynamicVertexState.sType                    = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_INPUT_DYNAMIC_STATE_FEATURES_EXT;
+    dynamicVertexState.vertexInputDynamicState  = true;
+    deviceInfo.enabledFeatures12.pNext          = &dynamicVertexState;
 
     window->createVulkanDevice(deviceInfo);
 
@@ -122,3 +123,6 @@ int main(int argc, char *argv[])
     SDL_Quit();
     return 0;
 }
+
+#include <vkw/SDLVulkanWindow_INIT.inl>
+#include <vkw/SDLVulkanWindow_USAGE.inl>

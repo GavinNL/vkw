@@ -4,6 +4,7 @@
 
 #include <vkw/VulkanApplication.h>
 #include <iostream>
+#include <cassert>
 
 class MyApplication : public vkw::Application
 {

@@ -68,10 +68,10 @@ class SDLVulkanWindow : public BaseWidget
     void createVulkanInstance(InstanceInitilizationInfo2 const & I);
 
     // 3. create the vulkan surface
-    void createVulkanSurface(SurfaceInitilizationInfo2 const & I);
+    bool createVulkanSurface(SurfaceInitilizationInfo2 const & I);
 
     // 4. create the physical device by picking the most appropriate one
-    void createVulkanPhysicalDevice();
+    bool createVulkanPhysicalDevice();
 
     // 5. Create the logical device
     void createVulkanDevice(DeviceInitilizationInfo2 const & I);

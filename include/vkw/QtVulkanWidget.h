@@ -12,6 +12,7 @@
 #include <iostream>
 
 #include "VulkanApplication.h"
+#include "base_widget.h"
 
 namespace vkw {
 
