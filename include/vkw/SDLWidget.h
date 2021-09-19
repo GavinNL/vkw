@@ -1,5 +1,5 @@
-#ifndef VKW_QT_SDL_WIDGET3_H
-#define VKW_QT_SDL_WIDGET3_H
+#ifndef VKW_SDL_VULKAN_WIDGET3_H
+#define VKW_SDL_VULKAN_WIDGET3_H
 
 #include "SDLVulkanWindow.h"
 #include "SDLVulkanWindowAdapter.h"
@@ -19,7 +19,7 @@ namespace vkw {
  * so that they can be used interchangeably without
  * much modification.
  */
-class SDLVulkanWidget : public SDLVulkanWindow
+class SDLVulkanWidget : public VKWVulkanWindow
 {
 public:
     struct CreateInfo

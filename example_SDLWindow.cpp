@@ -29,15 +29,15 @@ int main(int argc, char *argv[])
 
     // create a default window and initialize all vulkan
     // objects.
-    auto window = new vkw::SDLVulkanWindow();
+    auto window = new vkw::VKWVulkanWindow();
     auto sdl_window = new vkw::SDLVulkanWindowAdapter();
 
-    // 1. create the window
+    // 1. create the window and set the adapater
     sdl_window->createWindow("Title", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024,768);
     window->setWindowAdapater(sdl_window);
 
     // 2. Create the Instance
-    vkw::SDLVulkanWindow::InstanceInitilizationInfo2 instanceInfo;
+    vkw::VKWVulkanWindow::InstanceInitilizationInfo2 instanceInfo;
     instanceInfo.debugCallback = &VulkanReportFunc;
     instanceInfo.vulkanVersion = VK_MAKE_VERSION(1, 0, 0);
     instanceInfo.enabledExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     window->createVulkanInstance(instanceInfo);
 
     // 3. Create the surface
-    vkw::SDLVulkanWindow::SurfaceInitilizationInfo2 surfaceInfo;
+    vkw::VKWVulkanWindow::SurfaceInitilizationInfo2 surfaceInfo;
     surfaceInfo.depthFormat          = VkFormat::VK_FORMAT_D32_SFLOAT_S8_UINT;
     surfaceInfo.presentMode          = VK_PRESENT_MODE_FIFO_KHR;
     surfaceInfo.additionalImageCount = 1;// how many additional swapchain images should we create ( total = min_images + additionalImageCount
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 
     // 4. Create the device
     //    and add additional extensions that we want to enable
-    vkw::SDLVulkanWindow::DeviceInitilizationInfo2 deviceInfo;
+    vkw::VKWVulkanWindow::DeviceInitilizationInfo2 deviceInfo;
     deviceInfo.deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     deviceInfo.deviceExtensions.push_back(VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME);
 

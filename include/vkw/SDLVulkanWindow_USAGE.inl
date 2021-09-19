@@ -10,7 +10,7 @@
 
 namespace vkw
 {
-Frame SDLVulkanWindow::acquireNextFrame()
+Frame VKWVulkanWindow::acquireNextFrame()
 {
     if( m_swapchain == VK_NULL_HANDLE)
     {
@@ -47,12 +47,12 @@ Frame SDLVulkanWindow::acquireNextFrame()
     //F.clearDepth              = {1.0f, 0};
 }
 
-void  SDLVulkanWindow::submitFrame(const Frame &C)
+void  VKWVulkanWindow::submitFrame(const Frame &C)
 {
     submitFrameCommandBuffer(C.commandBuffer, C.imageAvailableSemaphore, C.renderCompleteSemaphore, C.fence);
 }
 
-void  SDLVulkanWindow::submitFrameCommandBuffer(VkCommandBuffer cb, VkSemaphore wait, VkSemaphore signal, VkFence fence)
+void  VKWVulkanWindow::submitFrameCommandBuffer(VkCommandBuffer cb, VkSemaphore wait, VkSemaphore signal, VkFence fence)
 {
     VkPipelineStageFlags waitDestStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
 
@@ -68,7 +68,7 @@ void  SDLVulkanWindow::submitFrameCommandBuffer(VkCommandBuffer cb, VkSemaphore 
     vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, fence);
 }
 
-void SDLVulkanWindow::presentFrame(Frame const &F)
+void VKWVulkanWindow::presentFrame(Frame const &F)
 {
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -80,7 +80,7 @@ void SDLVulkanWindow::presentFrame(Frame const &F)
     vkQueuePresentKHR(m_presentQueue, &presentInfo);
 }
 
-void SDLVulkanWindow::waitForPresent()
+void VKWVulkanWindow::waitForPresent()
 {
     vkQueueWaitIdle(m_presentQueue);
 }

@@ -1,5 +1,5 @@
-#ifndef VKW_SDL_VULKAN_WINDOW_H
-#define VKW_SDL_VULKAN_WINDOW_H
+#ifndef VKW_VULKAN_WINDOW_H
+#define VKW_VULKAN_WINDOW_H
 
 #include <vulkan/vulkan.h>
 
@@ -11,7 +11,7 @@
 namespace vkw
 {
 
-class SDLVulkanWindow : public BaseWidget
+class VKWVulkanWindow : public BaseWidget
 {
     public:
 
@@ -85,7 +85,7 @@ class SDLVulkanWindow : public BaseWidget
     std::vector<std::string> getAvailableVulkanLayers();
 
 
-    ~SDLVulkanWindow();
+    ~VKWVulkanWindow();
 
 
 
@@ -263,10 +263,6 @@ private:
     VkDebugReportCallbackEXT _createDebug(PFN_vkDebugReportCallbackEXT _callback);
 
     std::pair<VkImage, VkDeviceMemory> createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
-    //const std::vector<const char*> validationLayers = {
-    //    ///has bug
-    //    "VK_LAYER_LUNARG_standard_validation"
-    //};
 
     void _createDepthStencil();
     void _createRenderPass();
