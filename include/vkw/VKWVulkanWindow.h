@@ -26,7 +26,9 @@ class VKWVulkanWindow : public BaseWidget
         #else
             #define VKW_DEFAULT_VULKAN_VERSION VK_MAKE_VERSION(1, 0, 0)
         #endif
-        uint32_t                 vulkanVersion     = VKW_DEFAULT_VULKAN_VERSION;
+        uint32_t    vulkanVersion   = VKW_DEFAULT_VULKAN_VERSION;
+        std::string applicationName = "App name";
+        std::string engineName      = "Engine Name";
     };
 
     struct SurfaceInitilizationInfo2

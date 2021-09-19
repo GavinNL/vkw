@@ -1,7 +1,7 @@
 #ifndef VKW_SDLVULKANWINDOW_USAGE_INL
 #define VKW_SDLVULKANWINDOW_USAGE_INL
 
-#include "SDLVulkanWindow.h"
+#include "VKWVulkanWindow.h"
 
 #include <vector>
 #include <cassert>
@@ -33,18 +33,6 @@ Frame VKWVulkanWindow::acquireNextFrame()
     vkResetFences(m_device  , 1, &m_fences[frameIndex]);
 
     return m_frames[frameIndex];
-    //commandBuffer = vulkan->commandBuffers[frameIndex];
-    //
-    //Frame F;
-    //F.swapchainIndex          = frameIndex;
-    //F.swapchainImage          = m_swapchainImages[frameIndex];
-    //F.swapchainImageView      = m_swapchainImageViews[frameIndex];
-    //F.framebuffer             = m_swapchainFrameBuffers[frameIndex];
-    //F.commandPool             = m_commandPools[frameIndex];
-    //F.imageAvailableSemaphore = m_imageAvailableSemaphores[0];
-    //F.renderCompleteSemaphore = m_renderCompleteSemaphores[0];
-    //F.clearColor              = {{1.0f, 0.0f, 0.0f, 1.0f}};
-    //F.clearDepth              = {1.0f, 0};
 }
 
 void  VKWVulkanWindow::submitFrame(const Frame &C)

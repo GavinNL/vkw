@@ -1,5 +1,5 @@
 #include <iostream>
-#include <vkw/SDLVulkanWindow.h>
+#include <vkw/VKWVulkanWindow.h>
 #include <vkw/SDLVulkanWindowAdapter.h>
 
 // callback function for validation layers

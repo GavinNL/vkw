@@ -1,7 +1,7 @@
-#ifndef VKW_SDLVULKANWINDOW_INIT_INL
-#define VKW_SDLVULKANWINDOW_INIT_INL
+#ifndef VKW_VKWVULKANWINDOW_INIT_INL
+#define VKW_VKWVULKANWINDOW_INIT_INL
 
-#include "SDLVulkanWindow.h"
+#include "VKWVulkanWindow.h"
 
 #include <vector>
 #include <cassert>
@@ -39,7 +39,6 @@ std::vector<std::string> VKWVulkanWindow::getAvailableVulkanLayers()
 
     // Display layer names and find the ones we specified above
     std::vector<const char*> valid_instance_layer_names;
-    //const std::set<std::string>& lookup_layers = getRequestedLayerNames();
     int count(0);
     outLayers.clear();
     for (const auto& name : instance_layer_names)
@@ -47,12 +46,6 @@ std::vector<std::string> VKWVulkanWindow::getAvailableVulkanLayers()
         outLayers.push_back( name.layerName);
         count++;
     }
-
-    // Print the ones we're enabling
-    //std::cout << "\n";
-    //for (const auto& layer : outLayers)
-    //    std::cout << "applying layer: " << layer.c_str() << "\n";
-
     return outLayers;
 }
 
@@ -696,66 +689,63 @@ void VKWVulkanWindow::createVulkanInstance(InstanceInitilizationInfo2 const & I)
     //=================================================================
     // Make sure there are no duplicate layers
     //=================================================================
-    vector<const char *> validationLayers;
-    {
-        std::set<std::string> validationLayersSet;
-        for(auto & x : I.enabledLayers)
-            validationLayersSet.insert(x);
-        m_initInfo2.instance.enabledLayers.clear();
-        for(auto & x : validationLayersSet)
-        {
-            m_initInfo2.instance.enabledLayers.push_back(x);
-        }
-        for(auto & x : m_initInfo2.instance.enabledLayers)
-            validationLayers.push_back(x.data());
-    }
+    vectorAppend(m_initInfo2.instance.enabledExtensions, m_window->getRequiredVulkanExtensions());
+
+    vectorUnique(m_initInfo2.instance.enabledLayers);
+    vectorUnique(m_initInfo2.instance.enabledExtensions);
+
+    m_initInfo2.instance.enabledExtensions = _validateExtension(m_initInfo2.instance.enabledExtensions,
+                                                                getSupportedInstanceExtensions());
     //=================================================================
 
-    vector<const char *> extensionNames;
 
     {
-        auto requiredExtensions = m_window->getRequiredVulkanExtensions();
-        m_initInfo2.instance.enabledExtensions.insert(m_initInfo2.instance.enabledExtensions.end(), requiredExtensions.begin(),requiredExtensions.end());
-    }
-    {
-        auto supportedExtensions = getSupportedInstanceExtensions();
-        m_initInfo2.instance.enabledExtensions = _validateExtension(m_initInfo2.instance.enabledExtensions, supportedExtensions);
+        std::vector<const char *> validationLayers;
+        std::vector<const char *> extensionNames;
 
-        for(auto & e : m_initInfo2.instance.enabledExtensions)
+        for(auto & x : m_initInfo2.instance.enabledLayers)
         {
-            std::cerr << "Enabling Extension: " << e << std::endl;
-            extensionNames.push_back(e.data());
+            std::cerr << "Enabling Instance Layer: " << x << std::endl;
+            validationLayers.push_back(x.data());
+        }
+
+        for(auto & x : m_initInfo2.instance.enabledExtensions)
+        {
+            std::cerr << "Enabling Extension: " << x << std::endl;
+            extensionNames.push_back(x.data());
+        }
+
+
+        VkApplicationInfo appInfo = {};
+        appInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+        appInfo.pApplicationName   = m_initInfo2.instance.applicationName.data();
+        appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+        appInfo.pEngineName        = m_initInfo2.instance.engineName.data();
+        appInfo.engineVersion      = VK_MAKE_VERSION(1, 0, 0);
+        appInfo.apiVersion         = m_initInfo2.instance.vulkanVersion;
+
+        VkInstanceCreateInfo instanceCreateInfo    = {};
+        instanceCreateInfo.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+        instanceCreateInfo.pApplicationInfo        = &appInfo;
+        instanceCreateInfo.enabledLayerCount       = static_cast<uint32_t>(validationLayers.size());
+        instanceCreateInfo.ppEnabledLayerNames     = validationLayers.data();
+        instanceCreateInfo.enabledExtensionCount   = static_cast<uint32_t>(extensionNames.size());
+        instanceCreateInfo.ppEnabledExtensionNames = extensionNames.data();
+
+        VkInstance instance;
+        if( VkResult::VK_SUCCESS != vkCreateInstance(&instanceCreateInfo, nullptr, &instance) )
+        {
+            throw std::runtime_error("Failed to create Vulkan Instance");
+        }
+        m_instance = instance;
+
+        if( m_initInfo2.instance.debugCallback )
+        {
+            m_debugCallback = _createDebug(m_initInfo2.instance.debugCallback);
         }
     }
 
 
-    VkApplicationInfo appInfo = {};
-    appInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName   = "App name";
-    appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.pEngineName        = "No Engine";
-    appInfo.engineVersion      = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion         = I.vulkanVersion;
-
-    VkInstanceCreateInfo instanceCreateInfo    = {};
-    instanceCreateInfo.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    instanceCreateInfo.pApplicationInfo        = &appInfo;
-    instanceCreateInfo.enabledLayerCount       = static_cast<uint32_t>(validationLayers.size());
-    instanceCreateInfo.ppEnabledLayerNames     = validationLayers.data();
-    instanceCreateInfo.enabledExtensionCount   = static_cast<uint32_t>(extensionNames.size());
-    instanceCreateInfo.ppEnabledExtensionNames = extensionNames.data();
-
-    VkInstance instance;
-    if( VkResult::VK_SUCCESS != vkCreateInstance(&instanceCreateInfo, nullptr, &instance) )
-    {
-        throw std::runtime_error("Failed to create Vulkan Instance");
-    }
-    m_instance = instance;
-
-    if( m_initInfo2.instance.debugCallback )
-    {
-        m_debugCallback = _createDebug(m_initInfo2.instance.debugCallback);
-    }
 }
 
 bool VKWVulkanWindow::createVulkanSurface(SurfaceInitilizationInfo2 const & I)
@@ -842,12 +832,6 @@ void VKWVulkanWindow::createVulkanDevice(const DeviceInitilizationInfo2 &I)
         queueCreateInfos.push_back(queueCreateInfo);
     }
 
-    VkDeviceQueueCreateInfo queueCreateInfo = {};
-    queueCreateInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex        = static_cast<uint32_t>(m_graphicsQueueIndex);
-    queueCreateInfo.queueCount              = 1;
-    queueCreateInfo.pQueuePriorities        = &queuePriority;
-
     //==============================================================================
     // Double check that all the device features which have been requested
     // are supported. If there are any that are not supported, turn them off
@@ -908,7 +892,6 @@ void VKWVulkanWindow::createVulkanDevice(const DeviceInitilizationInfo2 &I)
 
     VkDeviceCreateInfo createInfo = {};
     createInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    createInfo.pQueueCreateInfos       = &queueCreateInfo;
     createInfo.queueCreateInfoCount    = static_cast<uint32_t>(queueCreateInfos.size());
     createInfo.pQueueCreateInfos       = queueCreateInfos.data();
 

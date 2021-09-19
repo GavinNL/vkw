@@ -4,6 +4,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <vulkan/vulkan.h>
 
 namespace vkw
@@ -28,7 +29,7 @@ public:
      * Return a set of all the extensions currently supported
      * but your vulkan library.
      */
-    static std::set<std::string> getSupportedExtensions()
+    static std::set<std::string> getSupportedInstanceExtensions()
     {
         uint32_t count;
         vkEnumerateInstanceExtensionProperties(nullptr, &count, nullptr); //get number of extensions
@@ -39,10 +40,6 @@ public:
             results.insert(extension.extensionName);
         }
         return results;
-    }
-    static std::set<std::string> getSupportedInstanceExtensions()
-    {
-        return getSupportedExtensions();
     }
 
     static std::set<std::string> getSupportedLayers()
@@ -84,6 +81,17 @@ public:
         return results;
     };
 
+    template<typename T>
+    static void vectorAppend( std::vector<T> & A, std::vector<T> const &B )
+    {
+        A.insert(A.end(), B.begin(), B.end());
+    }
+    template<typename T>
+    static void vectorUnique( std::vector<T> & A)
+    {
+        std::sort(A.begin(), A.end());
+        A.erase(std::unique( A.begin(), A.end()), A.end());
+    }
 };
 
 }
