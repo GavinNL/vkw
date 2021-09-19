@@ -36,15 +36,20 @@ public:
     }
 
     CreateInfo m_createInfo;
+
     void create(CreateInfo &C)
     {
         m_createInfo = C;
 
-        createWindow( C.windowTitle.c_str(),
+        SDLVulkanWindowAdapter * m_adapter = new SDLVulkanWindowAdapter();
+
+        m_adapter->createWindow( C.windowTitle.c_str(),
                      SDL_WINDOWPOS_CENTERED,
                      SDL_WINDOWPOS_CENTERED,
                      static_cast<int>(C.width),
                      static_cast<int>(C.height));
+
+        setWindowAdapater(m_adapter);
 
         createVulkanInstance(C.instanceInfo);
 

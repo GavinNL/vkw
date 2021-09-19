@@ -12,44 +12,9 @@
 namespace vkw
 {
 
-void SDLVulkanWindow::createWindow(const char *title, int x, int y, int w,
-                                                      int h, Uint32 flags)
+void SDLVulkanWindow::setWindowAdapater(VulkanWindowAdapater *window)
 {
-    flags |= SDL_WINDOW_VULKAN;
-    m_window = SDL_CreateWindow( title, x, y,w,h, flags);
-}
-
-std::vector<std::string> SDLVulkanWindow::getRequiredVulkanExtensions()
-{
-    std::vector<std::string> outExtensions;
-    // Figure out the amount of extensions vulkan needs to interface with the os windowing system
-    // This is necessary because vulkan is a platform agnostic API and needs to know how to interface with the windowing system
-    unsigned int ext_count = 0;
-    if (!SDL_Vulkan_GetInstanceExtensions(m_window, &ext_count, nullptr))
-    {
-        std::runtime_error("Unable to query the number of Vulkan instance extensions");
-        return {};
-    }
-
-    // Use the amount of extensions queried before to retrieve the names of the extensions
-    std::vector<const char*> ext_names(ext_count);
-    if (!SDL_Vulkan_GetInstanceExtensions(m_window, &ext_count, ext_names.data()))
-    {
-        std::runtime_error("Unable to query the number of Vulkan instance extension names");
-    }
-
-    // Display names
-    //std::runtime_error("found " << ext_count << " Vulkan instance extensions:\n";
-    for (unsigned int i = 0; i < ext_count; i++)
-    {
-        //std::cout << i << ": " << ext_names[i] << "\n";
-        outExtensions.emplace_back(ext_names[i]);
-    }
-
-    // Add debug display extension, we need this to relay debug messages
-    outExtensions.emplace_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-
-    return outExtensions;
+    m_window = window;
 }
 
 std::vector<std::string> SDLVulkanWindow::getAvailableVulkanLayers()
@@ -262,11 +227,8 @@ void SDLVulkanWindow::destroy()
         vkDestroyInstance(m_instance, nullptr);
         m_instance = VK_NULL_HANDLE;
     }
-    if( m_window)
-    {
-        SDL_DestroyWindow(m_window);
-        m_window = nullptr;
-    }
+
+    m_window = nullptr;
 }
 
 static VkBool32 getSupportedDepthFormat(VkPhysicalDevice physicalDevice, VkFormat *depthFormat)
@@ -546,13 +508,10 @@ void SDLVulkanWindow::_createSwapchain(uint32_t additionalImages=1)
     m_surfaceFormat = surfaceFormats[0];
     uint32_t width,height = 0;
     int32_t  iwidth,iheight = 0;
-    SDL_Vulkan_GetDrawableSize(m_window, &iwidth, &iheight);
-    width = static_cast<uint32_t>(iwidth);
-    height = static_cast<uint32_t>(iheight);
-    width  = CLAMP(width,  m_surfaceCapabilities.minImageExtent.width , m_surfaceCapabilities.maxImageExtent.width);
-    height = CLAMP(height, m_surfaceCapabilities.minImageExtent.height, m_surfaceCapabilities.maxImageExtent.height);
-    m_swapchainSize.width  = width;
-    m_swapchainSize.height = height;
+
+    m_swapchainSize = m_window->getDrawableSize();
+    m_swapchainSize.width  = CLAMP(width,  m_surfaceCapabilities.minImageExtent.width , m_surfaceCapabilities.maxImageExtent.width);
+    m_swapchainSize.height = CLAMP(height, m_surfaceCapabilities.minImageExtent.height, m_surfaceCapabilities.maxImageExtent.height);
 
     m_swapchainSize = m_surfaceCapabilities.currentExtent;
     uint32_t imageCount = m_surfaceCapabilities.minImageCount + additionalImages;
@@ -755,7 +714,7 @@ void SDLVulkanWindow::createVulkanInstance(InstanceInitilizationInfo2 const & I)
     vector<const char *> extensionNames;
 
     {
-        auto requiredExtensions = getRequiredVulkanExtensions();
+        auto requiredExtensions = m_window->getRequiredVulkanExtensions();
         m_initInfo2.instance.enabledExtensions.insert(m_initInfo2.instance.enabledExtensions.end(), requiredExtensions.begin(),requiredExtensions.end());
     }
     {
@@ -802,7 +761,7 @@ void SDLVulkanWindow::createVulkanInstance(InstanceInitilizationInfo2 const & I)
 bool SDLVulkanWindow::createVulkanSurface(SurfaceInitilizationInfo2 const & I)
 {
     m_initInfo2.surface = I;
-    SDL_Vulkan_CreateSurface(m_window, m_instance, &m_surface);
+    m_surface = m_window->createSurface(m_instance);
     return m_surface != VK_NULL_HANDLE;
 }
 

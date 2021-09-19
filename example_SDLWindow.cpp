@@ -29,9 +29,11 @@ int main(int argc, char *argv[])
     // create a default window and initialize all vulkan
     // objects.
     auto window = new vkw::SDLVulkanWindow();
+    auto sdl_window = new vkw::SDLVulkanWindowAdapter();
 
     // 1. create the window
-    window->createWindow("Title", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024,768);
+    sdl_window->createWindow("Title", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024,768);
+    window->setWindowAdapater(sdl_window);
 
     // 2. Create the Instance
     vkw::SDLVulkanWindow::InstanceInitilizationInfo2 instanceInfo;
