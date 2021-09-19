@@ -38,27 +38,27 @@ public:
 
     CreateInfo m_createInfo;
 
-    void create(CreateInfo &C)
+    void create(CreateInfo const &C)
     {
         m_createInfo = C;
 
         SDLVulkanWindowAdapter * m_adapter = new SDLVulkanWindowAdapter();
 
-        m_adapter->createWindow( C.windowTitle.c_str(),
+        m_adapter->createWindow( m_createInfo.windowTitle.c_str(),
                      SDL_WINDOWPOS_CENTERED,
                      SDL_WINDOWPOS_CENTERED,
-                     static_cast<int>(C.width),
-                     static_cast<int>(C.height));
+                     static_cast<int>(m_createInfo.width),
+                     static_cast<int>(m_createInfo.height));
 
         setWindowAdapater(m_adapter);
 
-        createVulkanInstance(C.instanceInfo);
+        createVulkanInstance(m_createInfo.instanceInfo);
 
-        createVulkanSurface(C.surfaceInfo);
+        createVulkanSurface(m_createInfo.surfaceInfo);
 
         createVulkanPhysicalDevice();
 
-        createVulkanDevice(C.deviceInfo);
+        createVulkanDevice(m_createInfo.deviceInfo);
     }
 
     void finalize(Application * app)

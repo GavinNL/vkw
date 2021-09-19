@@ -1,5 +1,11 @@
 #include <iostream>
+
+#define VKW_WINDOW_LIB 1
+
+#if VKW_WINDOW_LIB == 1
 #include <vkw/SDLWidget.h>
+#elif VKW_WINDOW_LIB == 2
+#endif
 
 // callback function for validation layers
 static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanReportFunc(
@@ -25,6 +31,42 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanReportFunc(
 // and example_widget_qt.cpp
 #include "example_myApplication.h"
 
+template<typename Widget_t>
+int startApp( MyApplication & app,
+              Widget_t & vulkanWindow,
+              typename Widget_t::CreateInfo const &ci)
+{
+#if VKW_WINDOW_LIB == 1
+    // This needs to be called first to initialize SDL
+    SDL_Init(SDL_INIT_EVERYTHING);
+#elif VKW_WINDOW_LIB == 2
+#endif
+
+    vulkanWindow.create(ci);
+
+#if VKW_WINDOW_LIB == 1
+    // put the window in the main loop
+    // and provide a callback function for the SDL events
+    vulkanWindow.exec(&app,
+                      [&app](SDL_Event const & evt)
+    {
+        if( evt.type == SDL_QUIT)
+            app.quit();
+    });
+#elif VKW_WINDOW_LIB == 2
+#endif
+
+    vulkanWindow.destroy();
+
+
+#if VKW_WINDOW_LIB == 1
+    SDL_Quit();
+#elif VKW_WINDOW_LIB == 2
+#endif
+
+    return 0;
+}
+
 
 #if defined(__WIN32__)
 int SDL_main(int argc, char *argv[])
@@ -34,8 +76,7 @@ int main(int argc, char *argv[])
 {
     (void)argc;
     (void)argv;
-    // This needs to be called first to initialize SDL
-    SDL_Init(SDL_INIT_EVERYTHING);
+
 
     // create a vulkan window widget
     vkw::SDLVulkanWidget vulkanWindow;
@@ -61,24 +102,15 @@ int main(int argc, char *argv[])
     //c.deviceInfo.enabledFeatures12.pNext         = &dynamicVertexState;
 
     // create the window and initialize
-    vulkanWindow.create(c);
-
+    //vulkanWindow.create(c);
 
     MyApplication app;
 
-    // put the window in the main loop
-    // and provide a callback function for the SDL events
-    vulkanWindow.exec(&app,
-                      [&app](SDL_Event const & evt)
-    {
-        if( evt.type == SDL_QUIT)
-            app.quit();
-    });
-
-    vulkanWindow.destroy();
-    SDL_Quit();
-    return 0;
+    return startApp( app, vulkanWindow, c);
 }
+
+
+
 
 #include <vkw/SDLVulkanWindow_INIT.inl>
 #include <vkw/SDLVulkanWindow_USAGE.inl>
