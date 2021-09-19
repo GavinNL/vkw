@@ -15,11 +15,36 @@ struct GLFWVulkanWindowAdapter : public VulkanWindowAdapater
 {
     GLFWwindow * m_window = nullptr;
 
+    struct GLFWUserPointer
+    {
+        bool requiresResize = false;
+        VkExtent2D windowExtent;
+    };
+    GLFWUserPointer    * m_userPtr = nullptr;
+
     void createWindow(const char * title, int w, int h )
     {
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
         m_window = glfwCreateWindow(w, h, title, nullptr, nullptr);
+
+        m_userPtr = new GLFWUserPointer();
+        m_userPtr->requiresResize = false;
+        m_userPtr->windowExtent   = { static_cast<uint32_t>(w), static_cast<uint32_t>(h)};
+        glfwSetFramebufferSizeCallback(m_window, GLFWVulkanWindowAdapter::framebufferResizeCallback);
+        glfwSetWindowUserPointer(m_window, m_userPtr);
+    }
+
+    static void framebufferResizeCallback(GLFWwindow* window, int w, int h)
+    {
+        auto usrPtr = static_cast<GLFWUserPointer*>(glfwGetWindowUserPointer(window));
+        usrPtr->requiresResize = true;
+        usrPtr->windowExtent   = { static_cast<uint32_t>(w), static_cast<uint32_t>(h)};
+        std::cout << "Frame Resized: " << w << ", " << h << std::endl;
+    }
+    bool requiresResize() const
+    {
+        return m_userPtr->requiresResize;
     }
 
     void destroy()
@@ -28,7 +53,10 @@ struct GLFWVulkanWindowAdapter : public VulkanWindowAdapater
         {
             glfwDestroyWindow(m_window);
         }
+        if(m_userPtr)
+            delete m_userPtr;
         m_window = nullptr;
+
     }
     //=================================================================================
     // These functions must be overidden window manager

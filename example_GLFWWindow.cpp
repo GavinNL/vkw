@@ -18,6 +18,8 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanReportFunc(
     return VK_FALSE;
 }
 
+
+
 int main(int argc, char *argv[])
 {
     // This needs to be called first to initialize SDL
@@ -25,12 +27,13 @@ int main(int argc, char *argv[])
 
     // create a default window and initialize all vulkan
     // objects.
-    auto window = new vkw::VKWVulkanWindow();
-    auto sdl_window = new vkw::GLFWVulkanWindowAdapter();
+    auto window      = new vkw::VKWVulkanWindow();
+    auto glfw_window = new vkw::GLFWVulkanWindowAdapter();
 
     // 1. create the window and set the adapater
-    sdl_window->createWindow("Title", 1024,768);
-    window->setWindowAdapater(sdl_window);
+    glfw_window->createWindow("Title", 1024,768);
+    window->setWindowAdapater(glfw_window);
+
 
     // 2. Create the Instance
     vkw::VKWVulkanWindow::InstanceInitilizationInfo2 instanceInfo;
@@ -64,12 +67,12 @@ int main(int argc, char *argv[])
     window->createVulkanDevice(deviceInfo);
 
 
-    bool running=true;
-    while (!glfwWindowShouldClose(sdl_window->m_window))
+    bool running = true;
+    while (!glfwWindowShouldClose(glfw_window->m_window) )
     {
         glfwPollEvents();
 
-        bool resize=false;
+        bool resize = glfw_window->requiresResize();
 
         if( resize )
         {
