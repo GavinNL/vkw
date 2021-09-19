@@ -57,13 +57,10 @@ int startApp( MyApplication & app,
             app.quit();
     });
 #elif VKW_WINDOW_LIB == 2
-    vulkanWindow.exec(&app,
-                      [&app]()
-    {
-        (void)app;
-        //if( evt.type == SDL_QUIT)
-        //    app.quit();
-    });
+    // put the window in the main loop
+    // GLFW requires you to register callbacks
+    // for input events. you will have to do these yourself
+    vulkanWindow.exec(&app);
 #endif
 
     vulkanWindow.destroy();
@@ -72,6 +69,7 @@ int startApp( MyApplication & app,
 #if VKW_WINDOW_LIB == 1
     SDL_Quit();
 #elif VKW_WINDOW_LIB == 2
+    glfwTerminate();
 #endif
 
     return 0;
@@ -119,8 +117,12 @@ int main(int argc, char *argv[])
     // create the window and initialize
     //vulkanWindow.create(c);
 
+    // Here is the actual vulkan application that does
+    // all the rendering.
     MyApplication app;
 
+    // Send our application to the window
+    // manager
     return startApp( app, vulkanWindow, c);
 }
 

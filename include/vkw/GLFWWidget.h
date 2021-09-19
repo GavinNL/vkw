@@ -98,8 +98,7 @@ public:
      * Similar to Qt's app.exec(). this will
      * loop until the the windows is closed
      */
-    template<typename SDL_EVENT_CALLABLE>
-    int exec(Application * app, SDL_EVENT_CALLABLE && callable)
+    int exec(Application * app)
     {
         app->m_device         = getDevice();
         app->m_physicalDevice = getPhysicalDevice();
@@ -119,15 +118,6 @@ public:
         {
             glfwPollEvents();
             bool resize = m_adapter->requiresResize();
-            //poll(app, [&resize,&callable](SDL_Event const &E)
-            //{
-            //    if (E.type == SDL_WINDOWEVENT && E.window.event == SDL_WINDOWEVENT_RESIZED
-            //            /*&& event.window.windowID == SDL_GetWindowID( window->getSDLWindow()) */ )
-            //    {
-            //        resize=true;
-            //    }
-            //    callable(E);
-            //});
 
             if( app->shouldQuit() )
             {
