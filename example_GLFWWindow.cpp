@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vkw/VKWVulkanWindow.h>
-#include <vkw/GLFWVulkanWindowAdapter.h>
+#include <vkw/Adapters/GLFWVulkanWindowAdapter.h>
 
 // callback function for validation layers
 static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanReportFunc(

@@ -2,7 +2,7 @@
 #define VKW_SDL_VULKAN_WIDGET3_H
 
 #include "VKWVulkanWindow.h"
-#include "SDLVulkanWindowAdapter.h"
+#include "Adapters/SDLVulkanWindowAdapter.h"
 #include "VulkanApplication.h"
 #include "Frame.h"
 #include <iostream>
