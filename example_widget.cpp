@@ -1,10 +1,11 @@
 #include <iostream>
 
-#define VKW_WINDOW_LIB 1
+//#define VKW_WINDOW_LIB 2
 
 #if VKW_WINDOW_LIB == 1
 #include <vkw/SDLWidget.h>
 #elif VKW_WINDOW_LIB == 2
+#include <vkw/GLFWWidget.h>
 #endif
 
 // callback function for validation layers
@@ -25,10 +26,11 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanReportFunc(
 
 
 // This header file contains the actual
-// rendering code for vulkan. It can be used
-// by both the SDLWidget and the Qt widget.
-// see example_widget_sdl.cpp
-// and example_widget_qt.cpp
+// rendering code for vulkan. It can be used:
+// GLFWVulkanWidget,
+// SDLVulkanWidget,
+// QTVulkanWidget
+//
 #include "example_myApplication.h"
 
 template<typename Widget_t>
@@ -40,6 +42,7 @@ int startApp( MyApplication & app,
     // This needs to be called first to initialize SDL
     SDL_Init(SDL_INIT_EVERYTHING);
 #elif VKW_WINDOW_LIB == 2
+    glfwInit();
 #endif
 
     vulkanWindow.create(ci);
@@ -54,6 +57,13 @@ int startApp( MyApplication & app,
             app.quit();
     });
 #elif VKW_WINDOW_LIB == 2
+    vulkanWindow.exec(&app,
+                      [&app]()
+    {
+        (void)app;
+        //if( evt.type == SDL_QUIT)
+        //    app.quit();
+    });
 #endif
 
     vulkanWindow.destroy();
@@ -77,14 +87,19 @@ int main(int argc, char *argv[])
     (void)argc;
     (void)argv;
 
-
     // create a vulkan window widget
-    vkw::SDLVulkanWidget vulkanWindow;
+#if VKW_WINDOW_LIB == 1
+    using WidgetType = vkw::SDLVulkanWidget;
+#elif VKW_WINDOW_LIB == 2
+    using WidgetType = vkw::GLFWVulkanWidget;
+#endif
+
+    WidgetType vulkanWindow;
 
     // set the initial properties of the
     // window. Also specify that we want
     // a depth stencil attachment
-    vkw::SDLVulkanWidget::CreateInfo c;
+    WidgetType::CreateInfo c;
     c.width       = 1024;
     c.height      = 768;
     c.windowTitle = "My Vulkan Application Window";

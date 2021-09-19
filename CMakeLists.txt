@@ -41,9 +41,14 @@ if( VKW_BUILD_EXAMPLES )
     add_executable( example_SDLWindow example_SDLWindow.cpp )
     target_link_libraries(example_SDLWindow  SDL2::SDL2  vkw::vkw Vulkan::Vulkan)
 
-    add_executable( example_widget_sdl example_widget_sdl.cpp )
-    target_link_libraries(example_widget_sdl  SDL2::SDL2  vkw::vkw Vulkan::Vulkan)
 
+    add_executable( example_widget_sdl example_widget.cpp )
+    target_link_libraries(example_widget_sdl  SDL2::SDL2  vkw::vkw Vulkan::Vulkan)
+    target_compile_definitions(example_widget_sdl PRIVATE VKW_WINDOW_LIB=1)
+
+    add_executable( example_widget_glfw example_widget.cpp )
+    target_link_libraries(example_widget_glfw  glfw::glfw  vkw::vkw Vulkan::Vulkan)
+    target_compile_definitions(example_widget_glfw PRIVATE VKW_WINDOW_LIB=2)
 
 
     set(CMAKE_AUTOUIC ON)
