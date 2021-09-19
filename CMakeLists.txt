@@ -33,12 +33,17 @@ if( VKW_BUILD_EXAMPLES )
     # Needed for vulkan
     find_package(Vulkan REQUIRED)
     find_package(SDL2 REQUIRED)
+    find_package(glfw3 REQUIRED)
+
+    add_executable( example_GLFWWindow example_GLFWWindow.cpp )
+    target_link_libraries(example_GLFWWindow  glfw::glfw  vkw::vkw Vulkan::Vulkan)
 
     add_executable( example_SDLWindow example_SDLWindow.cpp )
     target_link_libraries(example_SDLWindow  SDL2::SDL2  vkw::vkw Vulkan::Vulkan)
 
     add_executable( example_widget_sdl example_widget_sdl.cpp )
     target_link_libraries(example_widget_sdl  SDL2::SDL2  vkw::vkw Vulkan::Vulkan)
+
 
 
     set(CMAKE_AUTOUIC ON)

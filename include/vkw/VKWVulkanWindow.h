@@ -7,6 +7,7 @@
 #include <string>
 #include "Frame.h"
 #include "base_widget.h"
+#include "VulkanWindowAdapter.h"
 
 namespace vkw
 {

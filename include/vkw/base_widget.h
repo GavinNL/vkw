@@ -10,15 +10,6 @@
 namespace vkw
 {
 
-struct VulkanWindowAdapater
-{
-    virtual VkSurfaceKHR createSurface(VkInstance instance) = 0;
-
-    virtual std::vector<std::string> getRequiredVulkanExtensions() = 0;
-
-    virtual VkExtent2D getDrawableSize() = 0;
-};
-
 class BaseWidget
 {
 public:
