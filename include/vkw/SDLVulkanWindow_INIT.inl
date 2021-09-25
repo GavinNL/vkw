@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <set>
 #include <algorithm>
+#include <iostream>
 
 namespace vkw
 {
@@ -499,8 +500,7 @@ void VKWVulkanWindow::_createSwapchain(uint32_t additionalImages=1)
         return std::max( std::min(v, M), m);
     };
     m_surfaceFormat = surfaceFormats[0];
-    uint32_t width,height = 0;
-    int32_t  iwidth,iheight = 0;
+    uint32_t width =0,height = 0;
 
     m_swapchainSize = m_window->getDrawableSize();
     m_swapchainSize.width  = CLAMP(width,  m_surfaceCapabilities.minImageExtent.width , m_surfaceCapabilities.maxImageExtent.width);

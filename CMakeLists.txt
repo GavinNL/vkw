@@ -17,9 +17,9 @@ get_directory_property(vkw_has_parent PARENT_DIRECTORY)
 if(vkw_has_parent)
     # Don't build examples if we are a submodule.
     message("Not building examples")
-    option(VKW_BUILD_EXAMPLES "Build examples" ON)
-else()
     option(VKW_BUILD_EXAMPLES "Build examples" OFF)
+else()
+    option(VKW_BUILD_EXAMPLES "Build examples" ON)
 endif()
 
 

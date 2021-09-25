@@ -10,6 +10,8 @@ namespace vkw
 
 struct VulkanWindowAdapater
 {
+    virtual ~VulkanWindowAdapater() {}
+
     virtual VkSurfaceKHR createSurface(VkInstance instance) = 0;
 
     virtual std::vector<std::string> getRequiredVulkanExtensions() = 0;

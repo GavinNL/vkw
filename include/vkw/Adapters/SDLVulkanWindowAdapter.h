@@ -13,6 +13,8 @@
 #include <vector>
 #include <string>
 
+#include "VulkanWindowAdapter.h"
+
 namespace vkw
 {
 
