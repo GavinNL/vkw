@@ -669,6 +669,10 @@ std::vector<std::string> _validateExtension(std::vector<std::string> const & ext
         {
             out.push_back(e);
         }
+        else
+        {
+            std::cerr << "Invalid Extension: " << e << std::endl;
+        }
     }
     std::sort( out.begin(), out.end() );
 
@@ -693,6 +697,9 @@ void VKWVulkanWindow::createVulkanInstance(InstanceInitilizationInfo2 const & I)
 
     vectorUnique(m_initInfo2.instance.enabledLayers);
     vectorUnique(m_initInfo2.instance.enabledExtensions);
+
+    m_initInfo2.instance.enabledLayers = _validateExtension(m_initInfo2.instance.enabledLayers,
+                                                                getSupportedLayers());
 
     m_initInfo2.instance.enabledExtensions = _validateExtension(m_initInfo2.instance.enabledExtensions,
                                                                 getSupportedInstanceExtensions());
