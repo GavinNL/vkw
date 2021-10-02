@@ -19,7 +19,7 @@ class VKWVulkanWindow : public BaseWidget
     struct InstanceInitilizationInfo2
     {
         PFN_vkDebugReportCallbackEXT debugCallback = nullptr;
-        std::vector<std::string> enabledLayers     = { "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_standard_validation"};
+        std::vector<std::string> enabledLayers     = { "VK_LAYER_KHRONOS_validation"};
         std::vector<std::string> enabledExtensions = { VK_EXT_DEBUG_REPORT_EXTENSION_NAME };
 
         #if defined VK_HEADER_VERSION_COMPLETE
