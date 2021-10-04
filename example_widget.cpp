@@ -1,6 +1,6 @@
 #include <iostream>
 
-//#define VKW_WINDOW_LIB 2
+//#define VKW_WINDOW_LIB 1
 
 #if VKW_WINDOW_LIB == 1
 #include <vkw/SDLWidget.h>
@@ -33,54 +33,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanReportFunc(
 //
 #include "example_myApplication.h"
 
-template<typename Widget_t>
-int startApp( MyApplication & app,
-              Widget_t & vulkanWindow,
-              typename Widget_t::CreateInfo const &ci)
-{
-#if VKW_WINDOW_LIB == 1
-    // This needs to be called first to initialize SDL
-    SDL_Init(SDL_INIT_EVERYTHING);
-#elif VKW_WINDOW_LIB == 2
-    glfwInit();
-#endif
-
-    vulkanWindow.create(ci);
-
-#if VKW_WINDOW_LIB == 1
-    // put the window in the main loop
-    // and provide a callback function for the SDL events
-    vulkanWindow.exec(&app,
-                      [&app](SDL_Event const & evt)
-    {
-        if( evt.type == SDL_QUIT)
-            app.quit();
-    });
-#elif VKW_WINDOW_LIB == 2
-    // put the window in the main loop
-    // GLFW requires you to register callbacks
-    // for input events. you will have to do these yourself
-    vulkanWindow.exec(&app);
-#endif
-
-    vulkanWindow.destroy();
-
-
-#if VKW_WINDOW_LIB == 1
-    SDL_Quit();
-#elif VKW_WINDOW_LIB == 2
-    glfwTerminate();
-#endif
-
-    return 0;
-}
-
-
-#if defined(__WIN32__)
-int SDL_main(int argc, char *argv[])
-#else
-int main(int argc, char *argv[])
-#endif
+int MAIN(int argc, char *argv[])
 {
     (void)argc;
     (void)argv;
@@ -121,12 +74,64 @@ int main(int argc, char *argv[])
     // all the rendering.
     MyApplication app;
 
-    // Send our application to the window
-    // manager
-    return startApp( app, vulkanWindow, c);
+
+    {
+        #if VKW_WINDOW_LIB == 1
+            // This neeWds to be called first to initialize SDL
+            SDL_Init(SDL_INIT_EVERYTHING);
+
+            vulkanWindow.create(c);
+
+            // put the window in the main loop
+            // and provide a callback function for the SDL events
+            vulkanWindow.exec(&app,
+                              [&app](SDL_Event const & evt)
+            {
+                if( evt.type == SDL_QUIT)
+                    app.quit();
+            });
+
+            vulkanWindow.destroy();
+
+            SDL_Quit();
+
+        #elif VKW_WINDOW_LIB == 2
+
+            glfwInit();
+
+            vulkanWindow.create(c);
+
+            // put the window in the main loop
+            // GLFW requires you to register callbacks
+            // for input events. you will have to do these yourself
+            vulkanWindow.exec(&app);
+
+            vulkanWindow.destroy();
+
+            glfwTerminate();
+        #endif
+
+            return 0;
+    }
 }
 
 
+#if VKW_WINDOW_LIB == 1
+
+    #if defined(__WIN32__)
+    int SDL_main(int argc, char *argv[])
+    #else
+    int main(int argc, char *argv[])
+    #endif
+    {
+        return MAIN(argc, argv);
+    }
+#elif VKW_WINDOW_LIB == 2
+    int main(int argc, char *argv[])
+    {
+        return MAIN(argc, argv);
+    }
+#endif
 
 
 #include <vkw/SDLVulkanWindow_INIT.inl>
