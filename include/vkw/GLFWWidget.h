@@ -1,8 +1,8 @@
-#ifndef VKW_SDL_VULKAN_WIDGET3_H
-#define VKW_SDL_VULKAN_WIDGET3_H
+#ifndef VKW_GLFW_VULKAN_WIDGET3_H
+#define VKW_GLFW_VULKAN_WIDGET3_H
 
 #include "VKWVulkanWindow.h"
-#include "Adapters/SDLVulkanWindowAdapter.h"
+#include "Adapters/GLFWVulkanWindowAdapter.h"
 #include "VulkanApplication.h"
 #include "Frame.h"
 #include <iostream>
@@ -19,7 +19,7 @@ namespace vkw {
  * so that they can be used interchangeably without
  * much modification.
  */
-class SDLVulkanWidget : public VKWVulkanWindow
+class GLFWVulkanWidget : public VKWVulkanWindow
 {
 public:
     struct CreateInfo
@@ -32,21 +32,19 @@ public:
         SurfaceInitilizationInfo2  surfaceInfo;
     };
 
-    ~SDLVulkanWidget()
+    ~GLFWVulkanWidget()
     {
     }
-
+    GLFWVulkanWindowAdapter * m_adapter = nullptr;
     CreateInfo m_createInfo;
 
     void create(CreateInfo const &C)
     {
         m_createInfo = C;
 
-        SDLVulkanWindowAdapter * m_adapter = new SDLVulkanWindowAdapter();
+        m_adapter = new GLFWVulkanWindowAdapter();
 
         m_adapter->createWindow( m_createInfo.windowTitle.c_str(),
-                     SDL_WINDOWPOS_CENTERED,
-                     SDL_WINDOWPOS_CENTERED,
                      static_cast<int>(m_createInfo.width),
                      static_cast<int>(m_createInfo.height));
 
@@ -65,17 +63,6 @@ public:
     {
         app->releaseSwapChainResources();
         app->releaseResources();
-    }
-
-    template<typename callable_t>
-    void  poll( Application * app, callable_t && c)
-    {
-        SDL_Event event;
-        while (SDL_PollEvent(&event))
-        {
-            c(event);
-            app->nativeWindowEvent(&event);
-        }
     }
 
     void render( Application * app)
@@ -111,8 +98,7 @@ public:
      * Similar to Qt's app.exec(). this will
      * loop until the the windows is closed
      */
-    template<typename SDL_EVENT_CALLABLE>
-    int exec(Application * app, SDL_EVENT_CALLABLE && callable)
+    int exec(Application * app)
     {
         app->m_device         = getDevice();
         app->m_physicalDevice = getPhysicalDevice();
@@ -128,18 +114,10 @@ public:
         app->initResources();
         app->initSwapChainResources();
 
-        while( true )
+        while( !glfwWindowShouldClose(m_adapter->m_window) )
         {
-            bool resize=false;
-            poll(app, [&resize,&callable](SDL_Event const &E)
-            {
-                if (E.type == SDL_WINDOWEVENT && E.window.event == SDL_WINDOWEVENT_RESIZED
-                        /*&& event.window.windowID == SDL_GetWindowID( window->getSDLWindow()) */ )
-                {
-                    resize=true;
-                }
-                callable(E);
-            });
+            glfwPollEvents();
+            bool resize = m_adapter->requiresResize();
 
             if( app->shouldQuit() )
             {
@@ -152,6 +130,8 @@ public:
 
                 _initSwapchainVars(app);
                 app->initSwapChainResources();
+
+                m_adapter->clearRequireResize();
             }
 
 

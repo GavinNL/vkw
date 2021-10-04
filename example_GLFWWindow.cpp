@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vkw/VKWVulkanWindow.h>
-#include <vkw/Adapters/SDLVulkanWindowAdapter.h>
+#include <vkw/Adapters/GLFWVulkanWindowAdapter.h>
 
 // callback function for validation layers
 static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanReportFunc(
@@ -18,23 +18,21 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanReportFunc(
     return VK_FALSE;
 }
 
-#if defined(__WIN32__)
-int SDL_main(int argc, char *argv[])
-#else
+
+
 int main(int argc, char *argv[])
-#endif
 {
     // This needs to be called first to initialize SDL
-    SDL_Init(SDL_INIT_EVERYTHING);
+    glfwInit();
 
     // create a default window and initialize all vulkan
     // objects.
-    auto window = new vkw::VKWVulkanWindow();
-    auto sdl_window = new vkw::SDLVulkanWindowAdapter();
+    auto window      = new vkw::VKWVulkanWindow();
+    auto glfw_window = new vkw::GLFWVulkanWindowAdapter();
 
     // 1. create the window and set the adapater
-    sdl_window->createWindow("Title", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024,768);
-    window->setWindowAdapater(sdl_window);
+    glfw_window->createWindow("Title", 1024,768);
+    window->setWindowAdapater(glfw_window);
 
 
     // 2. Create the Instance
@@ -47,7 +45,7 @@ int main(int argc, char *argv[])
 
     // 3. Create the surface
     vkw::VKWVulkanWindow::SurfaceInitilizationInfo2 surfaceInfo;
-    surfaceInfo.depthFormat          = VK_FORMAT_D32_SFLOAT_S8_UINT;
+    surfaceInfo.depthFormat          = VkFormat::VK_FORMAT_D32_SFLOAT_S8_UINT;
     surfaceInfo.presentMode          = VK_PRESENT_MODE_FIFO_KHR;
     surfaceInfo.additionalImageCount = 1;// how many additional swapchain images should we create ( total = min_images + additionalImageCount
     window->createVulkanSurface(surfaceInfo);
@@ -69,24 +67,14 @@ int main(int argc, char *argv[])
     window->createVulkanDevice(deviceInfo);
 
 
-
-    bool running=true;
-    while(running)
+    bool running = true;
+    while (!glfwWindowShouldClose(glfw_window->m_window) )
     {
-        SDL_Event event;
-        bool resize=false;
-        while (SDL_PollEvent(&event))
-        {
-            if (event.type == SDL_QUIT)
-            {
-                running = false;
-            }
-            else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED
-                    /*&& event.window.windowID == SDL_GetWindowID( window->getSDLWindow()) */ )
-            {
-                resize=true;
-            }
-        }
+        glfwPollEvents();
+
+        bool resize = glfw_window->requiresResize();
+        glfw_window->clearRequireResize();
+
         if( resize )
         {
             // If the window has changed size. we need to rebuild the swapchain
@@ -124,7 +112,7 @@ int main(int argc, char *argv[])
     window->destroy();
     delete window;
 
-    SDL_Quit();
+    glfwTerminate();
     return 0;
 }
 

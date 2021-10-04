@@ -1,13 +1,5 @@
-#ifndef VKW_SDL_VULKAN_WINDOW_H
-#define VKW_SDL_VULKAN_WINDOW_H
-
-#if __has_include(<SDL2/SDL2.h>)
-#include <SDL2/SDL2.h>
-#include <SDL2/SDL_vulkan.h>
-#else
-#include <SDL.h>
-#include <SDL_vulkan.h>
-#endif
+#ifndef VKW_VULKAN_WINDOW_H
+#define VKW_VULKAN_WINDOW_H
 
 #include <vulkan/vulkan.h>
 
@@ -15,17 +7,19 @@
 #include <string>
 #include "Frame.h"
 #include "base_widget.h"
+#include "Adapters/VulkanWindowAdapter.h"
 
 namespace vkw
 {
-class SDLVulkanWindow : public BaseWidget
+
+class VKWVulkanWindow : public BaseWidget
 {
     public:
 
     struct InstanceInitilizationInfo2
     {
         PFN_vkDebugReportCallbackEXT debugCallback = nullptr;
-        std::vector<std::string> enabledLayers     = { "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_standard_validation"};
+        std::vector<std::string> enabledLayers     = { "VK_LAYER_KHRONOS_validation"};
         std::vector<std::string> enabledExtensions = { VK_EXT_DEBUG_REPORT_EXTENSION_NAME };
 
         #if defined VK_HEADER_VERSION_COMPLETE
@@ -33,7 +27,9 @@ class SDLVulkanWindow : public BaseWidget
         #else
             #define VKW_DEFAULT_VULKAN_VERSION VK_MAKE_VERSION(1, 0, 0)
         #endif
-        uint32_t                 vulkanVersion     = VKW_DEFAULT_VULKAN_VERSION;
+        uint32_t    vulkanVersion   = VKW_DEFAULT_VULKAN_VERSION;
+        std::string applicationName = "App name";
+        std::string engineName      = "Engine Name";
     };
 
     struct SurfaceInitilizationInfo2
@@ -62,7 +58,7 @@ class SDLVulkanWindow : public BaseWidget
 
     //=================================================================
     // 1. Create the  window first using this function
-    void createWindow(const char *title, int x, int y, int w, int h, Uint32 flags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
+    void setWindowAdapater(VulkanWindowAdapater * window);
 
     // 2. Create a vulkan instance
     void createVulkanInstance(InstanceInitilizationInfo2 const & I);
@@ -79,6 +75,7 @@ class SDLVulkanWindow : public BaseWidget
     //=================================================================
 
 
+    //=================================================================================
     /**
      * @brief destroy
      *
@@ -88,18 +85,10 @@ class SDLVulkanWindow : public BaseWidget
      */
     void destroy();
 
-    /**
-     * @brief getRequiredVulkanExtensions
-     * @return
-     *
-     * Get the required vulkan extensions required to
-     * be able to present to SDL windows
-     */
-    std::vector<std::string> getRequiredVulkanExtensions();
     std::vector<std::string> getAvailableVulkanLayers();
 
 
-    ~SDLVulkanWindow();
+    ~VKWVulkanWindow();
 
 
 
@@ -152,7 +141,11 @@ class SDLVulkanWindow : public BaseWidget
      */
     void  waitForPresent();
 
-    SDL_Window* getSDLWindow() const
+    //SDL_Window* getSDLWindow() const
+    //{
+    //    return m_window;
+    //}
+    VulkanWindowAdapater* getWindowAdapter() const
     {
         return m_window;
     }
@@ -237,7 +230,8 @@ protected:
         DeviceInitilizationInfo2   device;
     } m_initInfo2;
 
-    SDL_Window *               m_window   = nullptr;
+    //SDL_Window *               m_window   = nullptr;
+    VulkanWindowAdapater      *m_window   = nullptr;
     VkInstance                 m_instance = VK_NULL_HANDLE;
     VkSurfaceKHR               m_surface  = VK_NULL_HANDLE;
     VkPhysicalDevice           m_physicalDevice;
@@ -265,8 +259,6 @@ protected:
     std::vector<Frame>         m_frames;
 
 private:
-    SDL_Window *     _createWindow();
-
     void             _selectQueueFamily();
     VkDevice         _createDevice();
     void             _createSwapchain(uint32_t additionalImages);
@@ -274,10 +266,6 @@ private:
     VkDebugReportCallbackEXT _createDebug(PFN_vkDebugReportCallbackEXT _callback);
 
     std::pair<VkImage, VkDeviceMemory> createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
-    //const std::vector<const char*> validationLayers = {
-    //    ///has bug
-    //    "VK_LAYER_LUNARG_standard_validation"
-    //};
 
     void _createDepthStencil();
     void _createRenderPass();

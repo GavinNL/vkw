@@ -1,58 +1,87 @@
-#ifndef VKW_SDLVULKANWINDOW_INIT_INL
-#define VKW_SDLVULKANWINDOW_INIT_INL
+#ifndef VKW_VKWVULKANWINDOW_INIT_INL
+#define VKW_VKWVULKANWINDOW_INIT_INL
 
-#include "SDLVulkanWindow.h"
+#include "VKWVulkanWindow.h"
 
 #include <vector>
 #include <cassert>
 #include <stdexcept>
 #include <set>
 #include <algorithm>
+#include <iostream>
 
 namespace vkw
 {
 
-void SDLVulkanWindow::createWindow(const char *title, int x, int y, int w,
-                                                      int h, Uint32 flags)
+Frame VKWVulkanWindow::acquireNextFrame()
 {
-    flags |= SDL_WINDOW_VULKAN;
-    m_window = SDL_CreateWindow( title, x, y,w,h, flags);
+    if( m_swapchain == VK_NULL_HANDLE)
+    {
+        _createSwapchain(m_initInfo2.surface.additionalImageCount);
+        // level 2 initilization objects
+        _createPerFrameObjects();
+    }
+
+    uint32_t frameIndex;
+    vkAcquireNextImageKHR(  m_device,
+                            m_swapchain,
+                            UINT64_MAX-1,
+                            m_imageAvailableSemaphores[0],
+                            VK_NULL_HANDLE,
+                            &frameIndex);
+
+    vkResetCommandBuffer(m_frames[frameIndex].commandBuffer, 0);
+
+    vkWaitForFences(m_device, 1, &m_fences[frameIndex], VK_FALSE, UINT64_MAX);
+    vkResetFences(m_device  , 1, &m_fences[frameIndex]);
+
+    return m_frames[frameIndex];
 }
 
-std::vector<std::string> SDLVulkanWindow::getRequiredVulkanExtensions()
+void  VKWVulkanWindow::submitFrame(const Frame &C)
 {
-    std::vector<std::string> outExtensions;
-    // Figure out the amount of extensions vulkan needs to interface with the os windowing system
-    // This is necessary because vulkan is a platform agnostic API and needs to know how to interface with the windowing system
-    unsigned int ext_count = 0;
-    if (!SDL_Vulkan_GetInstanceExtensions(m_window, &ext_count, nullptr))
-    {
-        std::runtime_error("Unable to query the number of Vulkan instance extensions");
-        return {};
-    }
-
-    // Use the amount of extensions queried before to retrieve the names of the extensions
-    std::vector<const char*> ext_names(ext_count);
-    if (!SDL_Vulkan_GetInstanceExtensions(m_window, &ext_count, ext_names.data()))
-    {
-        std::runtime_error("Unable to query the number of Vulkan instance extension names");
-    }
-
-    // Display names
-    //std::runtime_error("found " << ext_count << " Vulkan instance extensions:\n";
-    for (unsigned int i = 0; i < ext_count; i++)
-    {
-        //std::cout << i << ": " << ext_names[i] << "\n";
-        outExtensions.emplace_back(ext_names[i]);
-    }
-
-    // Add debug display extension, we need this to relay debug messages
-    outExtensions.emplace_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-
-    return outExtensions;
+    submitFrameCommandBuffer(C.commandBuffer, C.imageAvailableSemaphore, C.renderCompleteSemaphore, C.fence);
 }
 
-std::vector<std::string> SDLVulkanWindow::getAvailableVulkanLayers()
+void  VKWVulkanWindow::submitFrameCommandBuffer(VkCommandBuffer cb, VkSemaphore wait, VkSemaphore signal, VkFence fence)
+{
+    VkPipelineStageFlags waitDestStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
+
+    VkSubmitInfo submitInfo         = {};
+    submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.waitSemaphoreCount   = 1;
+    submitInfo.pWaitSemaphores      = &wait;
+    submitInfo.pWaitDstStageMask    = &waitDestStageMask;
+    submitInfo.commandBufferCount   = 1;
+    submitInfo.pCommandBuffers      = &cb;
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores    = &signal;
+    vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, fence);
+}
+
+void VKWVulkanWindow::presentFrame(Frame const &F)
+{
+    VkPresentInfoKHR presentInfo = {};
+    presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores    = &F.renderCompleteSemaphore;
+    presentInfo.swapchainCount     = 1;
+    presentInfo.pSwapchains        = &m_swapchain;
+    presentInfo.pImageIndices      = &F.swapchainIndex;
+    vkQueuePresentKHR(m_presentQueue, &presentInfo);
+}
+
+void VKWVulkanWindow::waitForPresent()
+{
+    vkQueueWaitIdle(m_presentQueue);
+}
+
+void VKWVulkanWindow::setWindowAdapater(VulkanWindowAdapater *window)
+{
+    m_window = window;
+}
+
+std::vector<std::string> VKWVulkanWindow::getAvailableVulkanLayers()
 {
     std::vector<std::string> outLayers;
 
@@ -74,7 +103,6 @@ std::vector<std::string> SDLVulkanWindow::getAvailableVulkanLayers()
 
     // Display layer names and find the ones we specified above
     std::vector<const char*> valid_instance_layer_names;
-    //const std::set<std::string>& lookup_layers = getRequestedLayerNames();
     int count(0);
     outLayers.clear();
     for (const auto& name : instance_layer_names)
@@ -82,16 +110,10 @@ std::vector<std::string> SDLVulkanWindow::getAvailableVulkanLayers()
         outLayers.push_back( name.layerName);
         count++;
     }
-
-    // Print the ones we're enabling
-    //std::cout << "\n";
-    //for (const auto& layer : outLayers)
-    //    std::cout << "applying layer: " << layer.c_str() << "\n";
-
     return outLayers;
 }
 
-void SDLVulkanWindow::_destroySwapchain(bool destroyRenderPass)
+void VKWVulkanWindow::_destroySwapchain(bool destroyRenderPass)
 {
     if( m_renderPass != VK_NULL_HANDLE)
     {
@@ -134,7 +156,7 @@ void SDLVulkanWindow::_destroySwapchain(bool destroyRenderPass)
     }
 }
 
-void SDLVulkanWindow::_createPerFrameObjects()
+void VKWVulkanWindow::_createPerFrameObjects()
 {
     m_fences.resize( m_swapchainImages.size());
     m_renderCompleteSemaphores.resize( m_swapchainImages.size());
@@ -202,12 +224,12 @@ void SDLVulkanWindow::_createPerFrameObjects()
     }
 }
 
-SDLVulkanWindow::~SDLVulkanWindow()
+VKWVulkanWindow::~VKWVulkanWindow()
 {
     destroy();
 }
 
-void SDLVulkanWindow::destroy()
+void VKWVulkanWindow::destroy()
 {
     for(auto & f : m_fences)
     {
@@ -262,11 +284,8 @@ void SDLVulkanWindow::destroy()
         vkDestroyInstance(m_instance, nullptr);
         m_instance = VK_NULL_HANDLE;
     }
-    if( m_window)
-    {
-        SDL_DestroyWindow(m_window);
-        m_window = nullptr;
-    }
+
+    m_window = nullptr;
 }
 
 static VkBool32 getSupportedDepthFormat(VkPhysicalDevice physicalDevice, VkFormat *depthFormat)
@@ -293,7 +312,7 @@ static VkBool32 getSupportedDepthFormat(VkPhysicalDevice physicalDevice, VkForma
         return false;
 }
 
-void SDLVulkanWindow::_createFramebuffers()
+void VKWVulkanWindow::_createFramebuffers()
 {
     (void)getSupportedDepthFormat;
     m_swapchainFrameBuffers.resize(m_swapchainImageViews.size());
@@ -322,7 +341,7 @@ void SDLVulkanWindow::_createFramebuffers()
     }
 }
 
-void SDLVulkanWindow::_createRenderPass()
+void VKWVulkanWindow::_createRenderPass()
 {
     using namespace std;
     vector<VkAttachmentDescription> attachments(1);
@@ -393,7 +412,7 @@ void SDLVulkanWindow::_createRenderPass()
         }
 }
 
-void SDLVulkanWindow::_createDepthStencil()
+void VKWVulkanWindow::_createDepthStencil()
 {
     if( getDepthFormat() == VK_FORMAT_UNDEFINED)
         return;
@@ -426,7 +445,7 @@ void SDLVulkanWindow::_createDepthStencil()
 
 }
 
-std::pair<VkImage, VkDeviceMemory> SDLVulkanWindow::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
+std::pair<VkImage, VkDeviceMemory> VKWVulkanWindow::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
                         VkImageUsageFlags usage, VkMemoryPropertyFlags properties)
 {
     auto findMemoryType = [this](uint32_t typeFilter, VkMemoryPropertyFlags props)
@@ -498,7 +517,7 @@ VkResult createDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCa
     }
 }
 
-VkDebugReportCallbackEXT SDLVulkanWindow::_createDebug(PFN_vkDebugReportCallbackEXT _callback)
+VkDebugReportCallbackEXT VKWVulkanWindow::_createDebug(PFN_vkDebugReportCallbackEXT _callback)
 {
     VkDebugReportCallbackCreateInfoEXT debugCallbackCreateInfo = {};
     debugCallbackCreateInfo.sType                              = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
@@ -515,7 +534,7 @@ VkDebugReportCallbackEXT SDLVulkanWindow::_createDebug(PFN_vkDebugReportCallback
     return outCallback;
 }
 
-void SDLVulkanWindow::_createSwapchain(uint32_t additionalImages=1)
+void VKWVulkanWindow::_createSwapchain(uint32_t additionalImages=1)
 {
     using namespace  std;
 
@@ -544,15 +563,11 @@ void SDLVulkanWindow::_createSwapchain(uint32_t additionalImages=1)
         return std::max( std::min(v, M), m);
     };
     m_surfaceFormat = surfaceFormats[0];
-    uint32_t width,height = 0;
-    int32_t  iwidth,iheight = 0;
-    SDL_Vulkan_GetDrawableSize(m_window, &iwidth, &iheight);
-    width = static_cast<uint32_t>(iwidth);
-    height = static_cast<uint32_t>(iheight);
-    width  = CLAMP(width,  m_surfaceCapabilities.minImageExtent.width , m_surfaceCapabilities.maxImageExtent.width);
-    height = CLAMP(height, m_surfaceCapabilities.minImageExtent.height, m_surfaceCapabilities.maxImageExtent.height);
-    m_swapchainSize.width  = width;
-    m_swapchainSize.height = height;
+    uint32_t width =0,height = 0;
+
+    m_swapchainSize = m_window->getDrawableSize();
+    m_swapchainSize.width  = CLAMP(width,  m_surfaceCapabilities.minImageExtent.width , m_surfaceCapabilities.maxImageExtent.width);
+    m_swapchainSize.height = CLAMP(height, m_surfaceCapabilities.minImageExtent.height, m_surfaceCapabilities.maxImageExtent.height);
 
     m_swapchainSize = m_surfaceCapabilities.currentExtent;
     uint32_t imageCount = m_surfaceCapabilities.minImageCount + additionalImages;
@@ -648,7 +663,7 @@ void SDLVulkanWindow::_createSwapchain(uint32_t additionalImages=1)
     }
 }
 
-void SDLVulkanWindow::_selectQueueFamily()
+void VKWVulkanWindow::_selectQueueFamily()
 {
     auto physical_devices = m_physicalDevice;
     auto surface          = m_surface;
@@ -691,7 +706,7 @@ void SDLVulkanWindow::_selectQueueFamily()
     m_presentQueueIndex = presentIndex;
 }
 
-bool SDLVulkanWindow::createVulkanPhysicalDevice()
+bool VKWVulkanWindow::createVulkanPhysicalDevice()
 {
     using namespace std;
     vector<VkPhysicalDevice> physicalDevices;
@@ -717,6 +732,10 @@ std::vector<std::string> _validateExtension(std::vector<std::string> const & ext
         {
             out.push_back(e);
         }
+        else
+        {
+            std::cerr << "Invalid Extension: " << e << std::endl;
+        }
     }
     std::sort( out.begin(), out.end() );
 
@@ -725,7 +744,7 @@ std::vector<std::string> _validateExtension(std::vector<std::string> const & ext
     return out;
 }
 
-void SDLVulkanWindow::createVulkanInstance(InstanceInitilizationInfo2 const & I)
+void VKWVulkanWindow::createVulkanInstance(InstanceInitilizationInfo2 const & I)
 {
     using namespace std;
 
@@ -737,76 +756,76 @@ void SDLVulkanWindow::createVulkanInstance(InstanceInitilizationInfo2 const & I)
     //=================================================================
     // Make sure there are no duplicate layers
     //=================================================================
-    vector<const char *> validationLayers;
-    {
-        std::set<std::string> validationLayersSet;
-        for(auto & x : I.enabledLayers)
-            validationLayersSet.insert(x);
-        m_initInfo2.instance.enabledLayers.clear();
-        for(auto & x : validationLayersSet)
-        {
-            m_initInfo2.instance.enabledLayers.push_back(x);
-        }
-        for(auto & x : m_initInfo2.instance.enabledLayers)
-            validationLayers.push_back(x.data());
-    }
+    vectorAppend(m_initInfo2.instance.enabledExtensions, m_window->getRequiredVulkanExtensions());
+
+    vectorUnique(m_initInfo2.instance.enabledLayers);
+    vectorUnique(m_initInfo2.instance.enabledExtensions);
+
+    m_initInfo2.instance.enabledLayers = _validateExtension(m_initInfo2.instance.enabledLayers,
+                                                                getSupportedLayers());
+
+    m_initInfo2.instance.enabledExtensions = _validateExtension(m_initInfo2.instance.enabledExtensions,
+                                                                getSupportedInstanceExtensions());
     //=================================================================
 
-    vector<const char *> extensionNames;
 
     {
-        auto requiredExtensions = getRequiredVulkanExtensions();
-        m_initInfo2.instance.enabledExtensions.insert(m_initInfo2.instance.enabledExtensions.end(), requiredExtensions.begin(),requiredExtensions.end());
-    }
-    {
-        auto supportedExtensions = getSupportedInstanceExtensions();
-        m_initInfo2.instance.enabledExtensions = _validateExtension(m_initInfo2.instance.enabledExtensions, supportedExtensions);
+        std::vector<const char *> validationLayers;
+        std::vector<const char *> extensionNames;
 
-        for(auto & e : m_initInfo2.instance.enabledExtensions)
+        for(auto & x : m_initInfo2.instance.enabledLayers)
         {
-            std::cerr << "Enabling Extension: " << e << std::endl;
-            extensionNames.push_back(e.data());
+            std::cerr << "Enabling Instance Layer: " << x << std::endl;
+            validationLayers.push_back(x.data());
+        }
+
+        for(auto & x : m_initInfo2.instance.enabledExtensions)
+        {
+            std::cerr << "Enabling Extension: " << x << std::endl;
+            extensionNames.push_back(x.data());
+        }
+
+
+        VkApplicationInfo appInfo = {};
+        appInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+        appInfo.pApplicationName   = m_initInfo2.instance.applicationName.data();
+        appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+        appInfo.pEngineName        = m_initInfo2.instance.engineName.data();
+        appInfo.engineVersion      = VK_MAKE_VERSION(1, 0, 0);
+        appInfo.apiVersion         = m_initInfo2.instance.vulkanVersion;
+
+        VkInstanceCreateInfo instanceCreateInfo    = {};
+        instanceCreateInfo.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+        instanceCreateInfo.pApplicationInfo        = &appInfo;
+        instanceCreateInfo.enabledLayerCount       = static_cast<uint32_t>(validationLayers.size());
+        instanceCreateInfo.ppEnabledLayerNames     = validationLayers.data();
+        instanceCreateInfo.enabledExtensionCount   = static_cast<uint32_t>(extensionNames.size());
+        instanceCreateInfo.ppEnabledExtensionNames = extensionNames.data();
+
+        VkInstance instance;
+        if( VkResult::VK_SUCCESS != vkCreateInstance(&instanceCreateInfo, nullptr, &instance) )
+        {
+            throw std::runtime_error("Failed to create Vulkan Instance");
+        }
+        m_instance = instance;
+
+        if( m_initInfo2.instance.debugCallback )
+        {
+            m_debugCallback = _createDebug(m_initInfo2.instance.debugCallback);
         }
     }
 
 
-    VkApplicationInfo appInfo = {};
-    appInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName   = "App name";
-    appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.pEngineName        = "No Engine";
-    appInfo.engineVersion      = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion         = I.vulkanVersion;
-
-    VkInstanceCreateInfo instanceCreateInfo    = {};
-    instanceCreateInfo.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    instanceCreateInfo.pApplicationInfo        = &appInfo;
-    instanceCreateInfo.enabledLayerCount       = static_cast<uint32_t>(validationLayers.size());
-    instanceCreateInfo.ppEnabledLayerNames     = validationLayers.data();
-    instanceCreateInfo.enabledExtensionCount   = static_cast<uint32_t>(extensionNames.size());
-    instanceCreateInfo.ppEnabledExtensionNames = extensionNames.data();
-
-    VkInstance instance;
-    if( VkResult::VK_SUCCESS != vkCreateInstance(&instanceCreateInfo, nullptr, &instance) )
-    {
-        throw std::runtime_error("Failed to create Vulkan Instance");
-    }
-    m_instance = instance;
-
-    if( m_initInfo2.instance.debugCallback )
-    {
-        m_debugCallback = _createDebug(m_initInfo2.instance.debugCallback);
-    }
 }
 
-bool SDLVulkanWindow::createVulkanSurface(SurfaceInitilizationInfo2 const & I)
+bool VKWVulkanWindow::createVulkanSurface(SurfaceInitilizationInfo2 const & I)
 {
     m_initInfo2.surface = I;
-    SDL_Vulkan_CreateSurface(m_window, m_instance, &m_surface);
+    m_surface = m_window->createSurface(m_instance);
     return m_surface != VK_NULL_HANDLE;
 }
 
-VkPhysicalDeviceFeatures2 SDLVulkanWindow::getSupportedDeviceFeatures(VkPhysicalDevice physicalDevice)
+VkPhysicalDeviceFeatures2 VKWVulkanWindow::getSupportedDeviceFeatures(VkPhysicalDevice physicalDevice)
 {
     VkPhysicalDeviceFeatures2 availableDeviceFeatures2 = {};
 
@@ -818,7 +837,7 @@ VkPhysicalDeviceFeatures2 SDLVulkanWindow::getSupportedDeviceFeatures(VkPhysical
     return availableDeviceFeatures2;
 }
 
-VkPhysicalDeviceVulkan11Features SDLVulkanWindow::getSupportedDeviceFeatures11(VkPhysicalDevice physicalDevice)
+VkPhysicalDeviceVulkan11Features VKWVulkanWindow::getSupportedDeviceFeatures11(VkPhysicalDevice physicalDevice)
 {
     VkPhysicalDeviceVulkan11Features v11 = {};
     v11.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
@@ -830,7 +849,7 @@ VkPhysicalDeviceVulkan11Features SDLVulkanWindow::getSupportedDeviceFeatures11(V
     vkGetPhysicalDeviceFeatures2(physicalDevice, &availableDeviceFeatures2);
     return v11;
 }
-VkPhysicalDeviceVulkan12Features SDLVulkanWindow::getSupportedDeviceFeatures12(VkPhysicalDevice physicalDevice)
+VkPhysicalDeviceVulkan12Features VKWVulkanWindow::getSupportedDeviceFeatures12(VkPhysicalDevice physicalDevice)
 {
     VkPhysicalDeviceVulkan12Features v12 = {};
     v12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
@@ -843,7 +862,7 @@ VkPhysicalDeviceVulkan12Features SDLVulkanWindow::getSupportedDeviceFeatures12(V
     return v12;
 }
 
-void SDLVulkanWindow::createVulkanDevice(const DeviceInitilizationInfo2 &I)
+void VKWVulkanWindow::createVulkanDevice(const DeviceInitilizationInfo2 &I)
 {
     assert(m_physicalDevice != VK_NULL_HANDLE);
     m_initInfo2.device = I;
@@ -882,12 +901,6 @@ void SDLVulkanWindow::createVulkanDevice(const DeviceInitilizationInfo2 &I)
         queueCreateInfo.pQueuePriorities        = &queuePriority;
         queueCreateInfos.push_back(queueCreateInfo);
     }
-
-    VkDeviceQueueCreateInfo queueCreateInfo = {};
-    queueCreateInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex        = static_cast<uint32_t>(m_graphicsQueueIndex);
-    queueCreateInfo.queueCount              = 1;
-    queueCreateInfo.pQueuePriorities        = &queuePriority;
 
     //==============================================================================
     // Double check that all the device features which have been requested
@@ -949,7 +962,6 @@ void SDLVulkanWindow::createVulkanDevice(const DeviceInitilizationInfo2 &I)
 
     VkDeviceCreateInfo createInfo = {};
     createInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    createInfo.pQueueCreateInfos       = &queueCreateInfo;
     createInfo.queueCreateInfoCount    = static_cast<uint32_t>(queueCreateInfos.size());
     createInfo.pQueueCreateInfos       = queueCreateInfos.data();
 

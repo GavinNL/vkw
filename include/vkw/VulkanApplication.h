@@ -226,8 +226,9 @@ protected:
     friend class QtVulkanWidget2;
     friend class SDLVulkanWidget3;
     friend class QTRenderer;
-
+    friend class GLFWVulkanWidget;
 };
+
 }
 
 #endif

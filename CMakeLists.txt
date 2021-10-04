@@ -14,13 +14,12 @@ target_link_libraries( vkw INTERFACE)
 
 get_directory_property(vkw_has_parent PARENT_DIRECTORY)
 
-option(VKW_BUILD_EXAMPLES "Build examples" ON)
-
 if(vkw_has_parent)
     # Don't build examples if we are a submodule.
     message("Not building examples")
-    set(VKW_BUILD_EXAMPLES OFF)
-
+    option(VKW_BUILD_EXAMPLES "Build examples" OFF)
+else()
+    option(VKW_BUILD_EXAMPLES "Build examples" ON)
 endif()
 
 
@@ -33,12 +32,22 @@ if( VKW_BUILD_EXAMPLES )
     # Needed for vulkan
     find_package(Vulkan REQUIRED)
     find_package(SDL2 REQUIRED)
+    find_package(glfw3 REQUIRED)
+
+    add_executable( example_GLFWWindow example_GLFWWindow.cpp )
+    target_link_libraries(example_GLFWWindow  glfw::glfw  vkw::vkw Vulkan::Vulkan)
 
     add_executable( example_SDLWindow example_SDLWindow.cpp )
     target_link_libraries(example_SDLWindow  SDL2::SDL2  vkw::vkw Vulkan::Vulkan)
 
-    add_executable( example_widget_sdl example_widget_sdl.cpp )
+
+    add_executable( example_widget_sdl example_widget.cpp )
     target_link_libraries(example_widget_sdl  SDL2::SDL2  vkw::vkw Vulkan::Vulkan)
+    target_compile_definitions(example_widget_sdl PRIVATE VKW_WINDOW_LIB=1)
+
+    add_executable( example_widget_glfw example_widget.cpp )
+    target_link_libraries(example_widget_glfw  glfw::glfw  vkw::vkw Vulkan::Vulkan)
+    target_compile_definitions(example_widget_glfw PRIVATE VKW_WINDOW_LIB=2)
 
 
     set(CMAKE_AUTOUIC ON)
