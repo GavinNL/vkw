@@ -73,6 +73,7 @@ int main(int argc, char *argv[])
         glfwPollEvents();
 
         bool resize = glfw_window->requiresResize();
+        glfw_window->clearRequireResize();
 
         if( resize )
         {

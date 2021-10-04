@@ -67,8 +67,6 @@ int MAIN(int argc, char *argv[])
     //dynamicVertexState.vertexInputDynamicState  = true;
     //c.deviceInfo.enabledFeatures12.pNext         = &dynamicVertexState;
 
-    // create the window and initialize
-    //vulkanWindow.create(c);
 
     // Here is the actual vulkan application that does
     // all the rendering.
@@ -77,7 +75,7 @@ int MAIN(int argc, char *argv[])
 
     {
         #if VKW_WINDOW_LIB == 1
-            // This neeWds to be called first to initialize SDL
+            // This needs to be called first to initialize SDL
             SDL_Init(SDL_INIT_EVERYTHING);
 
             vulkanWindow.create(c);
@@ -110,9 +108,9 @@ int MAIN(int argc, char *argv[])
 
             glfwTerminate();
         #endif
-
-            return 0;
     }
+
+    return 0;
 }
 
 

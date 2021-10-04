@@ -36,6 +36,7 @@ int main(int argc, char *argv[])
     sdl_window->createWindow("Title", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024,768);
     window->setWindowAdapater(sdl_window);
 
+
     // 2. Create the Instance
     vkw::VKWVulkanWindow::InstanceInitilizationInfo2 instanceInfo;
     instanceInfo.debugCallback = &VulkanReportFunc;
@@ -46,7 +47,7 @@ int main(int argc, char *argv[])
 
     // 3. Create the surface
     vkw::VKWVulkanWindow::SurfaceInitilizationInfo2 surfaceInfo;
-    surfaceInfo.depthFormat          = VkFormat::VK_FORMAT_D32_SFLOAT_S8_UINT;
+    surfaceInfo.depthFormat          = VK_FORMAT_D32_SFLOAT_S8_UINT;
     surfaceInfo.presentMode          = VK_PRESENT_MODE_FIFO_KHR;
     surfaceInfo.additionalImageCount = 1;// how many additional swapchain images should we create ( total = min_images + additionalImageCount
     window->createVulkanSurface(surfaceInfo);
