@@ -132,5 +132,4 @@ int MAIN(int argc, char *argv[])
 #endif
 
 
-#include <vkw/SDLVulkanWindow_INIT.inl>
-#include <vkw/SDLVulkanWindow_USAGE.inl>
+#include <vkw/VKWVulkanWindow.inl>

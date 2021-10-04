@@ -116,5 +116,4 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-#include <vkw/SDLVulkanWindow_INIT.inl>
-#include <vkw/SDLVulkanWindow_USAGE.inl>
+#include <vkw/VKWVulkanWindow.inl>

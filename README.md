@@ -85,8 +85,7 @@ both libraries. As you can see, the code for each of them is very similar.
 #include <vkw/Adapters/SDLVulkanWindowAdapter.h>
 
 // Need this in at least one cpp file
-#include <vkw/SDLVulkanWindow_INIT.inl>
-#include <vkw/SDLVulkanWindow_USAGE.inl>
+#include <vkw/VKWVulkanWindow.inl>
 
 int main()
 {
@@ -202,8 +201,7 @@ int main()
 #include <vkw/Adapters/GLFWVulkanWindowAdapter.h>
 
 // Need this in at least one cpp file
-#include <vkw/SDLVulkanWindow_INIT.inl>
-#include <vkw/SDLVulkanWindow_USAGE.inl>
+#include <vkw/VKWVulkanWindow.inl>
 
 int main()
 {
