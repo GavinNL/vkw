@@ -40,11 +40,14 @@ struct GLFWVulkanWindowAdapter : public VulkanWindowAdapater
         auto usrPtr = static_cast<GLFWUserPointer*>(glfwGetWindowUserPointer(window));
         usrPtr->requiresResize = true;
         usrPtr->windowExtent   = { static_cast<uint32_t>(w), static_cast<uint32_t>(h)};
-        std::cout << "Frame Resized: " << w << ", " << h << std::endl;
     }
     bool requiresResize() const
     {
         return m_userPtr->requiresResize;
+    }
+    void clearRequireResize()
+    {
+        m_userPtr->requiresResize = false;
     }
 
     void destroy()

@@ -130,6 +130,8 @@ public:
 
                 _initSwapchainVars(app);
                 app->initSwapChainResources();
+
+                m_adapter->clearRequireResize();
             }
 
 
