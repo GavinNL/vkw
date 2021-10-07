@@ -98,7 +98,8 @@ public:
      * Similar to Qt's app.exec(). this will
      * loop until the the windows is closed
      */
-    int exec(Application * app)
+    template<typename SDL_MAIN_LOOP_CALLABLE>
+    int exec(Application * app, SDL_MAIN_LOOP_CALLABLE && mainLoop = [](){})
     {
         app->m_device         = getDevice();
         app->m_physicalDevice = getPhysicalDevice();
@@ -137,6 +138,7 @@ public:
 
             if( app->shouldRender() )
             {
+                mainLoop();
                 render(app);
             }
         }
