@@ -57,6 +57,7 @@ int MAIN(int argc, char *argv[])
 
     c.surfaceInfo.depthFormat    = VK_FORMAT_D32_SFLOAT_S8_UINT;
     c.instanceInfo.debugCallback = &VulkanReportFunc;
+    c.instanceInfo.vulkanVersion = VK_MAKE_VERSION(1,2,0);
 
     c.deviceInfo.deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     c.deviceInfo.deviceExtensions.push_back(VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME);
