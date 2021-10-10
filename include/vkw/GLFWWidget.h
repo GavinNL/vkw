@@ -91,6 +91,11 @@ public:
 
         app->m_currentSwapchainIndex=0;
     }
+
+    int exec(Application * app)
+    {
+        return exec(app, [](){});
+    }
     /**
      * @brief exec
      * @return
@@ -99,7 +104,7 @@ public:
      * loop until the the windows is closed
      */
     template<typename SDL_MAIN_LOOP_CALLABLE>
-    int exec(Application * app, SDL_MAIN_LOOP_CALLABLE && mainLoop = [](){})
+    int exec(Application * app, SDL_MAIN_LOOP_CALLABLE && mainLoop)
     {
         app->m_device         = getDevice();
         app->m_physicalDevice = getPhysicalDevice();
