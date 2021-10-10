@@ -553,16 +553,25 @@ void VKWVulkanWindow::_createSwapchain(uint32_t additionalImages=1)
                                                            &surfaceFormatsCount,
                                                            surfaceFormats.data());
 
-    if(surfaceFormats[0].format != VK_FORMAT_B8G8R8A8_UNORM)
+    m_surfaceFormat.format = VK_FORMAT_UNDEFINED;
+    for(auto & sf : surfaceFormats)
+    {
+        if( sf.format == m_initInfo2.surface.surfaceFormat)
         {
-        throw std::runtime_error("surfaceFormats[0].format != VK_FORMAT_B8G8R8A8_UNORM");
+            m_surfaceFormat = sf;
+            break;
         }
+    }
+    if(m_surfaceFormat.format == VK_FORMAT_UNDEFINED)
+    {
+        throw std::runtime_error("Surface cannot use the requested format");
+    }
 
     auto CLAMP = [](uint32_t v, uint32_t m, uint32_t M)
     {
         return std::max( std::min(v, M), m);
     };
-    m_surfaceFormat = surfaceFormats[0];
+
     uint32_t width =0,height = 0;
 
     m_swapchainSize = m_window->getDrawableSize();

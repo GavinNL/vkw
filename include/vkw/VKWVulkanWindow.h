@@ -34,6 +34,7 @@ class VKWVulkanWindow : public BaseWidget
 
     struct SurfaceInitilizationInfo2
     {
+        VkFormat         surfaceFormat        = VkFormat::VK_FORMAT_B8G8R8A8_UNORM;
         VkFormat         depthFormat          = VkFormat::VK_FORMAT_D32_SFLOAT_S8_UINT;
         VkPresentModeKHR presentMode          = VK_PRESENT_MODE_FIFO_KHR;
         uint32_t         additionalImageCount = 1;// how many additional swapchain images should we create ( total = min_images + additionalImageCount
