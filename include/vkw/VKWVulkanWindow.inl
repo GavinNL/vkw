@@ -725,8 +725,19 @@ bool VKWVulkanWindow::createVulkanPhysicalDevice()
     physicalDevices.resize(physicalDeviceCount);
     vkEnumeratePhysicalDevices(m_instance, &physicalDeviceCount, physicalDevices.data());
 
+    for(auto & pD : physicalDevices)
+    {
+        VkPhysicalDeviceProperties props;
+        vkGetPhysicalDeviceProperties(pD, &props);
 
-    m_physicalDevice = physicalDevices[0];
+        // choose the first discrete GPU
+        if (props.deviceType == VkPhysicalDeviceType::VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+        {
+            m_physicalDevice = pD;
+            break;
+        }
+    }
+    //m_physicalDevice = physicalDevices[0];
     //m_physicalDevice = physicalDevices[0];
     //return physicalDevices[0];;
     return m_physicalDevice != VK_NULL_HANDLE;
