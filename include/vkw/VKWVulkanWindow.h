@@ -42,6 +42,14 @@ class VKWVulkanWindow : public BaseWidget
 
     struct DeviceInitilizationInfo2
     {
+        // which device ID do you want to use?
+        // set to 0 to choose the first discrete GPU it can find.
+        // if no discrete gpu is found, uses the first GPU found
+        //
+        // auto devices = window->getAvailablePhysicalDevices();
+        //   devices[0].deviceID
+        uint32_t deviceID = 0;
+
         std::vector<std::string>         deviceExtensions  = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
 
@@ -67,11 +75,31 @@ class VKWVulkanWindow : public BaseWidget
     // 3. create the vulkan surface
     bool createVulkanSurface(SurfaceInitilizationInfo2 const & I);
 
-    // 4. create the physical device by picking the most appropriate one
-    bool createVulkanPhysicalDevice();
-
     // 5. Create the logical device
     void createVulkanDevice(DeviceInitilizationInfo2 const & I);
+
+
+    std::vector<VkPhysicalDeviceProperties> getAvailablePhysicalDevices() const
+    {
+        using namespace std;
+        vector<VkPhysicalDevice> physicalDevices;
+        uint32_t physicalDeviceCount = 0;
+
+        vkEnumeratePhysicalDevices(m_instance, &physicalDeviceCount, nullptr);
+        physicalDevices.resize(physicalDeviceCount);
+        vkEnumeratePhysicalDevices(m_instance, &physicalDeviceCount, physicalDevices.data());
+
+        std::vector<VkPhysicalDeviceProperties> _p;
+        for(auto & pD : physicalDevices)
+        {
+            VkPhysicalDeviceProperties props;
+
+            vkGetPhysicalDeviceProperties(pD, &props);
+            _p.push_back(props);
+        }
+        return _p;
+    }
+
 
     //=================================================================
 
@@ -223,6 +251,30 @@ class VKWVulkanWindow : public BaseWidget
     static VkPhysicalDeviceVulkan11Features getSupportedDeviceFeatures11(VkPhysicalDevice physicalDevice);
     static VkPhysicalDeviceVulkan12Features getSupportedDeviceFeatures12(VkPhysicalDevice physicalDevice);
 protected:
+
+    template<typename callable_t>
+    VkPhysicalDevice chooseVulkanPhysicalDevice(callable_t && callable) const
+    {
+        using namespace std;
+        vector<VkPhysicalDevice> physicalDevices;
+        uint32_t physicalDeviceCount = 0;
+
+        vkEnumeratePhysicalDevices(m_instance, &physicalDeviceCount, nullptr);
+        physicalDevices.resize(physicalDeviceCount);
+        vkEnumeratePhysicalDevices(m_instance, &physicalDeviceCount, physicalDevices.data());
+
+        for(auto & pD : physicalDevices)
+        {
+            VkPhysicalDeviceProperties props;
+            vkGetPhysicalDeviceProperties(pD, &props);
+            if( callable(props))
+            {
+                return pD;
+                break;
+            }
+        }
+        return VK_NULL_HANDLE;
+    }
 
     struct
     {

@@ -54,8 +54,6 @@ public:
 
         createVulkanSurface(m_createInfo.surfaceInfo);
 
-        createVulkanPhysicalDevice();
-
         createVulkanDevice(m_createInfo.deviceInfo);
     }
 

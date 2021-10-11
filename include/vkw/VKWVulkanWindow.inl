@@ -715,34 +715,6 @@ void VKWVulkanWindow::_selectQueueFamily()
     m_presentQueueIndex = presentIndex;
 }
 
-bool VKWVulkanWindow::createVulkanPhysicalDevice()
-{
-    using namespace std;
-    vector<VkPhysicalDevice> physicalDevices;
-    uint32_t physicalDeviceCount = 0;
-
-    vkEnumeratePhysicalDevices(m_instance, &physicalDeviceCount, nullptr);
-    physicalDevices.resize(physicalDeviceCount);
-    vkEnumeratePhysicalDevices(m_instance, &physicalDeviceCount, physicalDevices.data());
-
-    for(auto & pD : physicalDevices)
-    {
-        VkPhysicalDeviceProperties props;
-        vkGetPhysicalDeviceProperties(pD, &props);
-
-        // choose the first discrete GPU
-        if (props.deviceType == VkPhysicalDeviceType::VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
-        {
-            m_physicalDevice = pD;
-            break;
-        }
-    }
-    //m_physicalDevice = physicalDevices[0];
-    //m_physicalDevice = physicalDevices[0];
-    //return physicalDevices[0];;
-    return m_physicalDevice != VK_NULL_HANDLE;
-}
-
 std::vector<std::string> _validateExtension(std::vector<std::string> const & ext, std::set<std::string> const & valid)
 {
     std::vector<std::string> out;
@@ -884,11 +856,39 @@ VkPhysicalDeviceVulkan12Features VKWVulkanWindow::getSupportedDeviceFeatures12(V
 
 void VKWVulkanWindow::createVulkanDevice(const DeviceInitilizationInfo2 &I)
 {
-    assert(m_physicalDevice != VK_NULL_HANDLE);
+    {
+        if( m_initInfo2.device.deviceID == 0)
+        {
+            m_physicalDevice =  chooseVulkanPhysicalDevice([](auto & props)
+            {
+                return props.deviceType == VkPhysicalDeviceType::VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
+            });
+
+            if( m_physicalDevice == VK_NULL_HANDLE)
+            {
+                m_physicalDevice = chooseVulkanPhysicalDevice([](auto & props)
+                {
+                    (void)props;
+                    return true;
+                });
+            }
+        }
+        else
+        {
+            m_physicalDevice = chooseVulkanPhysicalDevice([&](auto & props)
+            {
+                return props.deviceID == I.deviceID;
+            });
+
+        }
+    }
+    if(  m_physicalDevice == VK_NULL_HANDLE)
+    {
+        throw std::runtime_error("Could not find a proper physical device");
+    }
     m_initInfo2.device = I;
     // find the proper queue indices
     _selectQueueFamily();
-
     //==========
     std::vector<const char*> deviceExtensions;
     {
