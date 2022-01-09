@@ -159,10 +159,9 @@ public:
                 app->initSwapChainResources();
             }
 
-
+            mainLoop();
             if( app->shouldRender() )
             {
-                mainLoop();
                 render(app);
             }
         }
