@@ -12,8 +12,12 @@ target_include_directories(vkw INTERFACE include)
 target_link_libraries( vkw INTERFACE)
 ################################################################################
 
-get_directory_property(vkw_has_parent PARENT_DIRECTORY)
 
+################################################################################
+# Only create examples if this project is a root project
+# if it is included as a subdirectory it will not create the examples
+################################################################################
+get_directory_property(vkw_has_parent PARENT_DIRECTORY)
 if(vkw_has_parent)
     # Don't build examples if we are a submodule.
     message("Not building examples")
@@ -21,6 +25,7 @@ if(vkw_has_parent)
 else()
     option(VKW_BUILD_EXAMPLES "Build examples" ON)
 endif()
+################################################################################
 
 
 
@@ -34,18 +39,18 @@ if( VKW_BUILD_EXAMPLES )
     find_package(SDL2 REQUIRED)
     find_package(glfw3 REQUIRED)
 
-    add_executable( example_GLFWWindow example_GLFWWindow.cpp )
+    add_executable( example_GLFWWindow examples/example_GLFWWindow.cpp )
     target_link_libraries(example_GLFWWindow  glfw::glfw  vkw::vkw Vulkan::Vulkan)
 
-    add_executable( example_SDLWindow example_SDLWindow.cpp )
+    add_executable( example_SDLWindow examples/example_SDLWindow.cpp )
     target_link_libraries(example_SDLWindow  SDL2::SDL2  vkw::vkw Vulkan::Vulkan)
 
 
-    add_executable( example_widget_sdl example_widget.cpp )
+    add_executable( example_widget_sdl examples/example_widget.cpp )
     target_link_libraries(example_widget_sdl  SDL2::SDL2  vkw::vkw Vulkan::Vulkan)
     target_compile_definitions(example_widget_sdl PRIVATE VKW_WINDOW_LIB=1)
 
-    add_executable( example_widget_glfw example_widget.cpp )
+    add_executable( example_widget_glfw examples/example_widget.cpp )
     target_link_libraries(example_widget_glfw  glfw::glfw  vkw::vkw Vulkan::Vulkan)
     target_compile_definitions(example_widget_glfw PRIVATE VKW_WINDOW_LIB=2)
 
