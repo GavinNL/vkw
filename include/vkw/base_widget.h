@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
-#include <vulkan/vulkan.h>
+#include "vulkan_include.h"
 
 namespace vkw
 {

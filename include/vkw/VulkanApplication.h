@@ -1,7 +1,7 @@
 #ifndef VKW_SDLQT_VULKANAPPLICATION_H
 #define VKW_SDLQT_VULKANAPPLICATION_H
 
-#include <vulkan/vulkan.h>
+#include "vulkan_include.h"
 #include <vector>
 #include <string>
 #include "Frame.h"
