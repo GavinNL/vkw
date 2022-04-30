@@ -38,13 +38,16 @@ if( VKW_BUILD_EXAMPLES )
     find_package(Vulkan REQUIRED)
     find_package(SDL2 REQUIRED)
     find_package(glfw3 REQUIRED)
+    find_package(vulkan-validationlayers REQUIRED)
 
     add_executable( example_GLFWWindow examples/example_GLFWWindow.cpp )
     target_link_libraries(example_GLFWWindow  glfw::glfw  vkw::vkw Vulkan::Vulkan)
 
     add_executable( example_SDLWindow examples/example_SDLWindow.cpp )
-    target_link_libraries(example_SDLWindow  SDL2::SDL2  vkw::vkw Vulkan::Vulkan)
+    target_link_libraries(example_SDLWindow  SDL2::SDL2  vkw::vkw Vulkan::Vulkan vulkan-validationlayers::vulkan-validationlayers)
 
+    add_executable( example_SDLWindow_vulkanProfiles examples/example_SDLWindow_vulkanProfiles.cpp )
+    target_link_libraries(example_SDLWindow_vulkanProfiles SDL2::SDL2  vkw::vkw Vulkan::Vulkan vulkan-validationlayers::vulkan-validationlayers)
 
     add_executable( example_widget_sdl examples/example_widget.cpp )
     target_link_libraries(example_widget_sdl  SDL2::SDL2  vkw::vkw Vulkan::Vulkan)
