@@ -1,7 +1,7 @@
 #ifndef VKW_VULKAN_WINDOW_H
 #define VKW_VULKAN_WINDOW_H
 
-#include <vulkan/vulkan.h>
+#include "vulkan_include.h"
 
 #include <vector>
 #include <string>
@@ -71,6 +71,7 @@ class VKWVulkanWindow : public BaseWidget
 
     // 2. Create a vulkan instance
     void createVulkanInstance(InstanceInitilizationInfo2 const & I);
+    void setVulkanInstance(VkInstance instance);
 
     // 3. create the vulkan surface
     bool createVulkanSurface(SurfaceInitilizationInfo2 const & I);
@@ -81,13 +82,16 @@ class VKWVulkanWindow : public BaseWidget
 
     std::vector<VkPhysicalDeviceProperties> getAvailablePhysicalDevices() const
     {
-        using namespace std;
-        vector<VkPhysicalDevice> physicalDevices;
+        return getAvailablePhysicalDevices(m_instance);
+    }
+    static std::vector<VkPhysicalDeviceProperties> getAvailablePhysicalDevices(VkInstance instance)
+    {
+        std::vector<VkPhysicalDevice> physicalDevices;
         uint32_t physicalDeviceCount = 0;
 
-        vkEnumeratePhysicalDevices(m_instance, &physicalDeviceCount, nullptr);
+        vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, nullptr);
         physicalDevices.resize(physicalDeviceCount);
-        vkEnumeratePhysicalDevices(m_instance, &physicalDeviceCount, physicalDevices.data());
+        vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, physicalDevices.data());
 
         std::vector<VkPhysicalDeviceProperties> _p;
         for(auto & pD : physicalDevices)
@@ -99,7 +103,68 @@ class VKWVulkanWindow : public BaseWidget
         }
         return _p;
     }
+    static VkPhysicalDeviceProperties getPhysicalDeviceProperties(VkInstance instance, VkPhysicalDevice device)
+    {
+        VkPhysicalDeviceProperties props;
+        vkGetPhysicalDeviceProperties(device, &props);
+        return props;
+    }
+    static std::vector<VkPhysicalDevice> getPhysicalDevices(VkInstance instance)
+    {
+        // Querying valid physical devices on the machine
+        uint32_t physical_device_count{0};
+        vkEnumeratePhysicalDevices(instance, &physical_device_count, nullptr);
 
+        std::vector<VkPhysicalDevice> physical_devices;
+        physical_devices.resize(physical_device_count);
+        vkEnumeratePhysicalDevices(instance, &physical_device_count, physical_devices.data());
+
+        return physical_devices;
+    }
+    static std::vector<VkQueueFamilyProperties> getQueueFamilyProperties(VkPhysicalDevice physicalDevice)
+    {
+        uint32_t queue_family_properties_count = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queue_family_properties_count, nullptr);
+        std::vector<VkQueueFamilyProperties> queue_family_properties(queue_family_properties_count);
+        vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queue_family_properties_count, queue_family_properties.data());
+        return queue_family_properties;
+    }
+
+
+    /**
+     * @brief getPhysicalDevice
+     * @param instance
+     * @param surface
+     * @return
+     *
+     * Return a physical device which is suitable to present to surface
+     */
+    static VkPhysicalDevice getPhysicalDevice(VkInstance instance, VkSurfaceKHR surface)
+    {
+        auto physicalDevices = getPhysicalDevices(instance);
+
+        for(auto pd : physicalDevices)
+        {
+            //assert(!gpus.empty() && "No physical devices were found on the system.");
+            auto props = getPhysicalDeviceProperties(instance, pd);
+
+            // Find a discrete GPU
+            if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+            {
+                //See if it work with the surface
+                auto queue_family_properties = getQueueFamilyProperties(pd);
+                size_t queue_count = queue_family_properties.size();
+                for (uint32_t queue_idx = 0; static_cast<size_t>(queue_idx) < queue_count; queue_idx++)
+                {
+                    VkBool32 present_supported = VK_FALSE;
+                    vkGetPhysicalDeviceSurfaceSupportKHR(pd, queue_idx, surface, &present_supported);
+                    if(present_supported)
+                        return pd;
+                }
+            }
+        }
+        return VK_NULL_HANDLE;
+    }
 
     //=================================================================
 
@@ -120,6 +185,9 @@ class VKWVulkanWindow : public BaseWidget
     ~VKWVulkanWindow();
 
 
+    void setInstance(VkInstance instance);
+
+    void setPhysicalDevice(VkPhysicalDevice physicalDevice);
 
     //===================================================================
     // The implementation for the following functions are in
@@ -311,7 +379,7 @@ protected:
     VkDebugReportCallbackEXT   m_debugCallback = VK_NULL_HANDLE;
     std::vector<Frame>         m_frames;
 
-private:
+protected:
     void             _selectQueueFamily();
     VkDevice         _createDevice();
     void             _createSwapchain(uint32_t additionalImages);

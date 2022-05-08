@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 #endif
 {
     // This needs to be called first to initialize SDL
-    SDL_Init(SDL_INIT_EVERYTHING);
+    SDL_Init(SDL_INIT_VIDEO |  SDL_INIT_EVENTS);
 
     // create a default window and initialize all vulkan
     // objects.

@@ -1,7 +1,7 @@
 #ifndef VKW_GLFW_VULKAN_WINDOW_ADAPTER_H
 #define VKW_GLFW_VULKAN_WINDOW_ADAPTER_H
 
-#include <vulkan/vulkan.h> // this must be included before glfw3
+#include "../vulkan_include.h" // this must be included before glfw3
 #include <GLFW/glfw3.h>
 
 #include "VulkanWindowAdapter.h"

@@ -799,17 +799,19 @@ void VKWVulkanWindow::createVulkanInstance(InstanceInitilizationInfo2 const & I)
         {
             throw std::runtime_error("Failed to create Vulkan Instance");
         }
-        m_instance = instance;
+        setInstance(instance);
 
         if( m_initInfo2.instance.debugCallback )
         {
             m_debugCallback = _createDebug(m_initInfo2.instance.debugCallback);
         }
     }
-
-
 }
 
+void VKWVulkanWindow::setInstance(VkInstance instance)
+{
+    m_instance = instance;
+}
 bool VKWVulkanWindow::createVulkanSurface(SurfaceInitilizationInfo2 const & I)
 {
     m_initInfo2.surface = I;
