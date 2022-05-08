@@ -9,7 +9,7 @@
 #include <SDL_vulkan.h>
 #endif
 
-#include <vulkan/vulkan.h>
+#include "../vulkan_include.h"
 #include <vector>
 #include <string>
 

@@ -1,7 +1,7 @@
 #ifndef QTSDL_VULKAN_FRAME_H
 #define QTSDL_VULKAN_FRAME_H
 
-#include <vulkan/vulkan.h>
+#include "vulkan_include.h"
 
 namespace vkw
 {

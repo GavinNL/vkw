@@ -1,7 +1,7 @@
 #ifndef VKW_VULKAN_WINDOW_ADAPTER_H
 #define VKW_VULKAN_WINDOW_ADAPTER_H
 
-#include <vulkan/vulkan.h>
+#include "../vulkan_include.h"
 #include <vector>
 #include <string>
 

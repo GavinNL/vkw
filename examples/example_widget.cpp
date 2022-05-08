@@ -55,17 +55,23 @@ int MAIN(int argc, char *argv[])
     c.height      = 768;
     c.windowTitle = "My Vulkan Application Window";
 
-    c.surfaceInfo.depthFormat    = VK_FORMAT_D32_SFLOAT_S8_UINT;
+    // configure the vulkan instance
+    c.instanceInfo.vulkanVersion = VK_MAKE_VERSION(1,2,0);
     c.instanceInfo.debugCallback = &VulkanReportFunc;
 
+    // Set up the surface information
+    c.surfaceInfo.presentMode    = VK_PRESENT_MODE_FIFO_KHR;
+    c.surfaceInfo.depthFormat    = VK_FORMAT_D32_SFLOAT_S8_UINT;
+
+    // Configure the device extensions you would like
     c.deviceInfo.deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     c.deviceInfo.deviceExtensions.push_back(VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME);
 
     // enable a new extended feature
-    //VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT dynamicVertexState = {};
-    //dynamicVertexState.sType                    = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_INPUT_DYNAMIC_STATE_FEATURES_EXT;
-    //dynamicVertexState.vertexInputDynamicState  = true;
-    //c.deviceInfo.enabledFeatures12.pNext         = &dynamicVertexState;
+    VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT dynamicVertexState = {};
+    dynamicVertexState.sType                    = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_INPUT_DYNAMIC_STATE_FEATURES_EXT;
+    dynamicVertexState.vertexInputDynamicState  = true;
+    c.deviceInfo.enabledFeatures12.pNext        = &dynamicVertexState;
 
 
     // Here is the actual vulkan application that does
@@ -76,7 +82,7 @@ int MAIN(int argc, char *argv[])
     {
         #if VKW_WINDOW_LIB == 1
             // This needs to be called first to initialize SDL
-            SDL_Init(SDL_INIT_EVERYTHING);
+            SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
 
             vulkanWindow.create(c);
 

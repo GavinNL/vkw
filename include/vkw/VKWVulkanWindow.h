@@ -1,7 +1,7 @@
 #ifndef VKW_VULKAN_WINDOW_H
 #define VKW_VULKAN_WINDOW_H
 
-#include <vulkan/vulkan.h>
+#include "vulkan_include.h"
 
 #include <vector>
 #include <string>
@@ -34,6 +34,7 @@ class VKWVulkanWindow : public BaseWidget
 
     struct SurfaceInitilizationInfo2
     {
+        VkFormat         surfaceFormat        = VkFormat::VK_FORMAT_B8G8R8A8_UNORM;
         VkFormat         depthFormat          = VkFormat::VK_FORMAT_D32_SFLOAT_S8_UINT;
         VkPresentModeKHR presentMode          = VK_PRESENT_MODE_FIFO_KHR;
         uint32_t         additionalImageCount = 1;// how many additional swapchain images should we create ( total = min_images + additionalImageCount
@@ -41,6 +42,14 @@ class VKWVulkanWindow : public BaseWidget
 
     struct DeviceInitilizationInfo2
     {
+        // which device ID do you want to use?
+        // set to 0 to choose the first discrete GPU it can find.
+        // if no discrete gpu is found, uses the first GPU found
+        //
+        // auto devices = window->getAvailablePhysicalDevices();
+        //   devices[0].deviceID
+        uint32_t deviceID = 0;
+
         std::vector<std::string>         deviceExtensions  = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
 
@@ -62,15 +71,100 @@ class VKWVulkanWindow : public BaseWidget
 
     // 2. Create a vulkan instance
     void createVulkanInstance(InstanceInitilizationInfo2 const & I);
+    void setVulkanInstance(VkInstance instance);
 
     // 3. create the vulkan surface
     bool createVulkanSurface(SurfaceInitilizationInfo2 const & I);
 
-    // 4. create the physical device by picking the most appropriate one
-    bool createVulkanPhysicalDevice();
-
     // 5. Create the logical device
     void createVulkanDevice(DeviceInitilizationInfo2 const & I);
+
+
+    std::vector<VkPhysicalDeviceProperties> getAvailablePhysicalDevices() const
+    {
+        return getAvailablePhysicalDevices(m_instance);
+    }
+    static std::vector<VkPhysicalDeviceProperties> getAvailablePhysicalDevices(VkInstance instance)
+    {
+        std::vector<VkPhysicalDevice> physicalDevices;
+        uint32_t physicalDeviceCount = 0;
+
+        vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, nullptr);
+        physicalDevices.resize(physicalDeviceCount);
+        vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, physicalDevices.data());
+
+        std::vector<VkPhysicalDeviceProperties> _p;
+        for(auto & pD : physicalDevices)
+        {
+            VkPhysicalDeviceProperties props;
+
+            vkGetPhysicalDeviceProperties(pD, &props);
+            _p.push_back(props);
+        }
+        return _p;
+    }
+    static VkPhysicalDeviceProperties getPhysicalDeviceProperties(VkInstance instance, VkPhysicalDevice device)
+    {
+        VkPhysicalDeviceProperties props;
+        vkGetPhysicalDeviceProperties(device, &props);
+        return props;
+    }
+    static std::vector<VkPhysicalDevice> getPhysicalDevices(VkInstance instance)
+    {
+        // Querying valid physical devices on the machine
+        uint32_t physical_device_count{0};
+        vkEnumeratePhysicalDevices(instance, &physical_device_count, nullptr);
+
+        std::vector<VkPhysicalDevice> physical_devices;
+        physical_devices.resize(physical_device_count);
+        vkEnumeratePhysicalDevices(instance, &physical_device_count, physical_devices.data());
+
+        return physical_devices;
+    }
+    static std::vector<VkQueueFamilyProperties> getQueueFamilyProperties(VkPhysicalDevice physicalDevice)
+    {
+        uint32_t queue_family_properties_count = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queue_family_properties_count, nullptr);
+        std::vector<VkQueueFamilyProperties> queue_family_properties(queue_family_properties_count);
+        vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queue_family_properties_count, queue_family_properties.data());
+        return queue_family_properties;
+    }
+
+
+    /**
+     * @brief getPhysicalDevice
+     * @param instance
+     * @param surface
+     * @return
+     *
+     * Return a physical device which is suitable to present to surface
+     */
+    static VkPhysicalDevice getPhysicalDevice(VkInstance instance, VkSurfaceKHR surface)
+    {
+        auto physicalDevices = getPhysicalDevices(instance);
+
+        for(auto pd : physicalDevices)
+        {
+            //assert(!gpus.empty() && "No physical devices were found on the system.");
+            auto props = getPhysicalDeviceProperties(instance, pd);
+
+            // Find a discrete GPU
+            if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+            {
+                //See if it work with the surface
+                auto queue_family_properties = getQueueFamilyProperties(pd);
+                size_t queue_count = queue_family_properties.size();
+                for (uint32_t queue_idx = 0; static_cast<size_t>(queue_idx) < queue_count; queue_idx++)
+                {
+                    VkBool32 present_supported = VK_FALSE;
+                    vkGetPhysicalDeviceSurfaceSupportKHR(pd, queue_idx, surface, &present_supported);
+                    if(present_supported)
+                        return pd;
+                }
+            }
+        }
+        return VK_NULL_HANDLE;
+    }
 
     //=================================================================
 
@@ -91,6 +185,9 @@ class VKWVulkanWindow : public BaseWidget
     ~VKWVulkanWindow();
 
 
+    void setInstance(VkInstance instance);
+
+    void setPhysicalDevice(VkPhysicalDevice physicalDevice);
 
     //===================================================================
     // The implementation for the following functions are in
@@ -223,6 +320,30 @@ class VKWVulkanWindow : public BaseWidget
     static VkPhysicalDeviceVulkan12Features getSupportedDeviceFeatures12(VkPhysicalDevice physicalDevice);
 protected:
 
+    template<typename callable_t>
+    VkPhysicalDevice chooseVulkanPhysicalDevice(callable_t && callable) const
+    {
+        using namespace std;
+        vector<VkPhysicalDevice> physicalDevices;
+        uint32_t physicalDeviceCount = 0;
+
+        vkEnumeratePhysicalDevices(m_instance, &physicalDeviceCount, nullptr);
+        physicalDevices.resize(physicalDeviceCount);
+        vkEnumeratePhysicalDevices(m_instance, &physicalDeviceCount, physicalDevices.data());
+
+        for(auto & pD : physicalDevices)
+        {
+            VkPhysicalDeviceProperties props;
+            vkGetPhysicalDeviceProperties(pD, &props);
+            if( callable(props))
+            {
+                return pD;
+                break;
+            }
+        }
+        return VK_NULL_HANDLE;
+    }
+
     struct
     {
         InstanceInitilizationInfo2 instance;
@@ -258,7 +379,7 @@ protected:
     VkDebugReportCallbackEXT   m_debugCallback = VK_NULL_HANDLE;
     std::vector<Frame>         m_frames;
 
-private:
+protected:
     void             _selectQueueFamily();
     VkDevice         _createDevice();
     void             _createSwapchain(uint32_t additionalImages);

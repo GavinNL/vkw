@@ -553,16 +553,25 @@ void VKWVulkanWindow::_createSwapchain(uint32_t additionalImages=1)
                                                            &surfaceFormatsCount,
                                                            surfaceFormats.data());
 
-    if(surfaceFormats[0].format != VK_FORMAT_B8G8R8A8_UNORM)
+    m_surfaceFormat.format = VK_FORMAT_UNDEFINED;
+    for(auto & sf : surfaceFormats)
+    {
+        if( sf.format == m_initInfo2.surface.surfaceFormat)
         {
-        throw std::runtime_error("surfaceFormats[0].format != VK_FORMAT_B8G8R8A8_UNORM");
+            m_surfaceFormat = sf;
+            break;
         }
+    }
+    if(m_surfaceFormat.format == VK_FORMAT_UNDEFINED)
+    {
+        throw std::runtime_error("Surface cannot use the requested format");
+    }
 
     auto CLAMP = [](uint32_t v, uint32_t m, uint32_t M)
     {
         return std::max( std::min(v, M), m);
     };
-    m_surfaceFormat = surfaceFormats[0];
+
     uint32_t width =0,height = 0;
 
     m_swapchainSize = m_window->getDrawableSize();
@@ -706,23 +715,6 @@ void VKWVulkanWindow::_selectQueueFamily()
     m_presentQueueIndex = presentIndex;
 }
 
-bool VKWVulkanWindow::createVulkanPhysicalDevice()
-{
-    using namespace std;
-    vector<VkPhysicalDevice> physicalDevices;
-    uint32_t physicalDeviceCount = 0;
-
-    vkEnumeratePhysicalDevices(m_instance, &physicalDeviceCount, nullptr);
-    physicalDevices.resize(physicalDeviceCount);
-    vkEnumeratePhysicalDevices(m_instance, &physicalDeviceCount, physicalDevices.data());
-
-
-    m_physicalDevice = physicalDevices[0];
-    //m_physicalDevice = physicalDevices[0];
-    //return physicalDevices[0];;
-    return m_physicalDevice != VK_NULL_HANDLE;
-}
-
 std::vector<std::string> _validateExtension(std::vector<std::string> const & ext, std::set<std::string> const & valid)
 {
     std::vector<std::string> out;
@@ -807,17 +799,19 @@ void VKWVulkanWindow::createVulkanInstance(InstanceInitilizationInfo2 const & I)
         {
             throw std::runtime_error("Failed to create Vulkan Instance");
         }
-        m_instance = instance;
+        setInstance(instance);
 
         if( m_initInfo2.instance.debugCallback )
         {
             m_debugCallback = _createDebug(m_initInfo2.instance.debugCallback);
         }
     }
-
-
 }
 
+void VKWVulkanWindow::setInstance(VkInstance instance)
+{
+    m_instance = instance;
+}
 bool VKWVulkanWindow::createVulkanSurface(SurfaceInitilizationInfo2 const & I)
 {
     m_initInfo2.surface = I;
@@ -864,11 +858,39 @@ VkPhysicalDeviceVulkan12Features VKWVulkanWindow::getSupportedDeviceFeatures12(V
 
 void VKWVulkanWindow::createVulkanDevice(const DeviceInitilizationInfo2 &I)
 {
-    assert(m_physicalDevice != VK_NULL_HANDLE);
+    {
+        if( m_initInfo2.device.deviceID == 0)
+        {
+            m_physicalDevice =  chooseVulkanPhysicalDevice([](auto & props)
+            {
+                return props.deviceType == VkPhysicalDeviceType::VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
+            });
+
+            if( m_physicalDevice == VK_NULL_HANDLE)
+            {
+                m_physicalDevice = chooseVulkanPhysicalDevice([](auto & props)
+                {
+                    (void)props;
+                    return true;
+                });
+            }
+        }
+        else
+        {
+            m_physicalDevice = chooseVulkanPhysicalDevice([&](auto & props)
+            {
+                return props.deviceID == I.deviceID;
+            });
+
+        }
+    }
+    if(  m_physicalDevice == VK_NULL_HANDLE)
+    {
+        throw std::runtime_error("Could not find a proper physical device");
+    }
     m_initInfo2.device = I;
     // find the proper queue indices
     _selectQueueFamily();
-
     //==========
     std::vector<const char*> deviceExtensions;
     {

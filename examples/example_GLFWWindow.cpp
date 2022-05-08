@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
     // 2. Create the Instance
     vkw::VKWVulkanWindow::InstanceInitilizationInfo2 instanceInfo;
     instanceInfo.debugCallback = &VulkanReportFunc;
-    instanceInfo.vulkanVersion = VK_MAKE_VERSION(1, 0, 0);
+    instanceInfo.vulkanVersion = VK_MAKE_VERSION(1, 2, 0);
     instanceInfo.enabledExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 
     window->createVulkanInstance(instanceInfo);
@@ -50,11 +50,25 @@ int main(int argc, char *argv[])
     surfaceInfo.additionalImageCount = 1;// how many additional swapchain images should we create ( total = min_images + additionalImageCount
     window->createVulkanSurface(surfaceInfo);
 
-    window->createVulkanPhysicalDevice();
-
     // 4. Create the device
     //    and add additional extensions that we want to enable
     vkw::VKWVulkanWindow::DeviceInitilizationInfo2 deviceInfo;
+
+#if 0
+    // set to zero if you want to VKW to choose
+    // a device for you
+    deviceInfo.deviceID = 0;
+#else
+    for(auto &d : window->getAvailablePhysicalDevices())
+    {
+        if(d.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+        {
+            deviceInfo.deviceID = d.deviceID;
+            break;
+        }
+    }
+#endif
+
     deviceInfo.deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     deviceInfo.deviceExtensions.push_back(VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME);
 
