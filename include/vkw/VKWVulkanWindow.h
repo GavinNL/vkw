@@ -80,6 +80,14 @@ class VKWVulkanWindow : public BaseWidget
     void createVulkanDevice(DeviceInitilizationInfo2 const & I);
 
 
+    void setDepthFormat(VkFormat format)
+    {
+        m_initInfo2.surface.depthFormat = format;
+    }
+    void setPresentMode(VkPresentModeKHR mode)
+    {
+        m_initInfo2.surface.presentMode = mode;
+    }
     std::vector<VkPhysicalDeviceProperties> getAvailablePhysicalDevices() const
     {
         return getAvailablePhysicalDevices(m_instance);
@@ -306,6 +314,10 @@ class VKWVulkanWindow : public BaseWidget
     VkImageView getDepthImageView() const
     {
         return m_depthStencilImageView;
+    }
+    VkRenderPass getRenderPass() const
+    {
+        return m_renderPass;
     }
     //===================================================================
 
