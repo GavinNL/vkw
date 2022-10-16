@@ -2,13 +2,21 @@
 #define VKW_VULKAN_WINDOW_PROFILE_H
 
 #include "vulkan_include.h"
-
+#include <vulkan/vulkan_profiles.hpp>
 #include <vector>
 #include <string>
 #include "VKWVulkanWindow.h"
 
 namespace vkw
 {
+
+struct CombinedFeatures : VkPhysicalDeviceFeatures,
+                          VkPhysicalDeviceVulkan11Features,
+                          VkPhysicalDeviceVulkan12Features,
+                          VkPhysicalDeviceVulkan13Features
+{
+
+};
 
 class VKWVulkanWindowProfile : public VKWVulkanWindow
 {
@@ -53,7 +61,8 @@ public:
     void createProfileDevice(VkPhysicalDevice pd,
                              VkSurfaceKHR surface,
                              VpProfileProperties const & profile_properties,
-                             std::vector<std::string> const extraRequiredDeviceExtenstions = {})
+                             std::vector<std::string> const extraRequiredDeviceExtenstions = {},
+                             std::function<void(CombinedFeatures&)> useEnabledFeatures = {})
     {
         m_physicalDevice = pd;
         m_surface = surface;
@@ -97,11 +106,48 @@ public:
         create_info.enabledExtensionCount   = static_cast<uint32_t>(deviceExtensions.size());
         create_info.ppEnabledExtensionNames = deviceExtensions.data();
 
+        CombinedFeatures userOverrideFeatures = {};
+        // We intend to enable/disable some features in the following feature
+        // structures but otherwise we want to keep the rest of the features
+        // enabled/disabled according to the profile
+        //VkPhysicalDeviceVulkan11Features vulkan11Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES };
+        //VkPhysicalDeviceVulkan12Features vulkan12Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
+
+
+        VkPhysicalDeviceFeatures2 feats2 = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2};
+
+        VkPhysicalDeviceFeatures2          vulkan10Features = {};
+        VkPhysicalDeviceVulkan11Features & vulkan11Features = userOverrideFeatures;//{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES };
+        VkPhysicalDeviceVulkan12Features & vulkan12Features = userOverrideFeatures;//{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
+        VkPhysicalDeviceVulkan13Features & vulkan13Features = userOverrideFeatures;//{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
+
+        vulkan10Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+        vulkan11Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+        vulkan12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+        vulkan13Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+
+        // We pre-populate the structures with the feature data of the profile
+        // by passing all structures as a pNext chain to vpGetProfileFeatures
+        vulkan11Features.pNext = &vulkan12Features;
+        vulkan12Features.pNext = &vulkan13Features;
+        vulkan13Features.pNext = &vulkan10Features;
+
+        vpGetProfileFeatures(&profile_properties, &vulkan11Features);
+
+        VkPhysicalDeviceFeatures & feat0 = userOverrideFeatures;
+        feat0 = vulkan10Features.features;
+
+        if(useEnabledFeatures)
+        {
+            useEnabledFeatures(userOverrideFeatures);
+            vulkan10Features.features = feat0;
+        }
         // Create the device using the profile tool library
         VpDeviceCreateInfo deviceCreateInfo{};
         deviceCreateInfo.pCreateInfo = &create_info;
         deviceCreateInfo.pProfile    = &profile_properties;
-        deviceCreateInfo.flags       = VP_DEVICE_CREATE_MERGE_EXTENSIONS_BIT;
+        deviceCreateInfo.flags       = VP_DEVICE_CREATE_MERGE_EXTENSIONS_BIT | VP_DEVICE_CREATE_OVERRIDE_FEATURES_BIT;
+        create_info.pNext = &vulkan11Features;
         VkDevice vulkan_device;
         VkResult result = vpCreateDevice(pd, &deviceCreateInfo, nullptr, &vulkan_device);
 
