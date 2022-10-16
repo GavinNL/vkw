@@ -62,6 +62,7 @@ class VKWVulkanWindow : public BaseWidget
         VkPhysicalDeviceFeatures2        enabledFeatures   = {};
         VkPhysicalDeviceVulkan11Features enabledFeatures11 = {};
         VkPhysicalDeviceVulkan12Features enabledFeatures12 = {};
+        VkPhysicalDeviceVulkan13Features enabledFeatures13 = {};
 
     };
 
@@ -330,6 +331,7 @@ class VKWVulkanWindow : public BaseWidget
     static VkPhysicalDeviceFeatures2 getSupportedDeviceFeatures(VkPhysicalDevice physicalDevice);
     static VkPhysicalDeviceVulkan11Features getSupportedDeviceFeatures11(VkPhysicalDevice physicalDevice);
     static VkPhysicalDeviceVulkan12Features getSupportedDeviceFeatures12(VkPhysicalDevice physicalDevice);
+    static VkPhysicalDeviceVulkan13Features getSupportedDeviceFeatures13(VkPhysicalDevice physicalDevice);
 protected:
 
     template<typename callable_t>

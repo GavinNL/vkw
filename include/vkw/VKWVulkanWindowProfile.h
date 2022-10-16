@@ -106,15 +106,12 @@ public:
         create_info.enabledExtensionCount   = static_cast<uint32_t>(deviceExtensions.size());
         create_info.ppEnabledExtensionNames = deviceExtensions.data();
 
+        //==============================================================================
+        // This section grabs all the device features which are enabled by the
+        // profile and passes them to the user
+        // suplied function so additional features can be turned on
+        //==============================================================================
         CombinedFeatures userOverrideFeatures = {};
-        // We intend to enable/disable some features in the following feature
-        // structures but otherwise we want to keep the rest of the features
-        // enabled/disabled according to the profile
-        //VkPhysicalDeviceVulkan11Features vulkan11Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES };
-        //VkPhysicalDeviceVulkan12Features vulkan12Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
-
-
-        VkPhysicalDeviceFeatures2 feats2 = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2};
 
         VkPhysicalDeviceFeatures2          vulkan10Features = {};
         VkPhysicalDeviceVulkan11Features & vulkan11Features = userOverrideFeatures;//{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES };
@@ -135,13 +132,15 @@ public:
         vpGetProfileFeatures(&profile_properties, &vulkan11Features);
 
         VkPhysicalDeviceFeatures & feat0 = userOverrideFeatures;
-        feat0 = vulkan10Features.features;
+        feat0 = vulkan10Features.features; // copy them from  the DeviceFeatures2 struct
 
         if(useEnabledFeatures)
         {
             useEnabledFeatures(userOverrideFeatures);
             vulkan10Features.features = feat0;
         }
+        //==============================================================================
+
         // Create the device using the profile tool library
         VpDeviceCreateInfo deviceCreateInfo{};
         deviceCreateInfo.pCreateInfo = &create_info;
