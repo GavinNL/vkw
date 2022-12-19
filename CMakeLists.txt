@@ -38,23 +38,24 @@ if( VKW_BUILD_EXAMPLES )
     find_package(Vulkan REQUIRED)
     find_package(SDL2 REQUIRED)
     find_package(glfw3 REQUIRED)
-    find_package(vulkan-validationlayers REQUIRED)
+
+    SET(vulkan_libs  Vulkan::Vulkan)
 
     add_executable( example_GLFWWindow examples/example_GLFWWindow.cpp )
-    target_link_libraries(example_GLFWWindow  glfw::glfw  vkw::vkw Vulkan::Vulkan)
+    target_link_libraries(example_GLFWWindow  glfw::glfw  vkw::vkw ${vulkan_libs})
 
     add_executable( example_SDLWindow examples/example_SDLWindow.cpp )
-    target_link_libraries(example_SDLWindow  SDL2::SDL2  vkw::vkw Vulkan::Vulkan vulkan-validationlayers::vulkan-validationlayers)
+    target_link_libraries(example_SDLWindow  SDL2::SDL2  vkw::vkw ${vulkan_libs} )
 
     add_executable( example_SDLWindow_vulkanProfiles examples/example_SDLWindow_vulkanProfiles.cpp )
-    target_link_libraries(example_SDLWindow_vulkanProfiles SDL2::SDL2  vkw::vkw Vulkan::Vulkan vulkan-validationlayers::vulkan-validationlayers)
+    target_link_libraries(example_SDLWindow_vulkanProfiles SDL2::SDL2  vkw::vkw ${vulkan_libs} )
 
     add_executable( example_widget_sdl examples/example_widget.cpp )
-    target_link_libraries(example_widget_sdl  SDL2::SDL2  vkw::vkw Vulkan::Vulkan)
+    target_link_libraries(example_widget_sdl  SDL2::SDL2  vkw::vkw ${vulkan_libs})
     target_compile_definitions(example_widget_sdl PRIVATE VKW_WINDOW_LIB=1)
 
     add_executable( example_widget_glfw examples/example_widget.cpp )
-    target_link_libraries(example_widget_glfw  glfw::glfw  vkw::vkw Vulkan::Vulkan)
+    target_link_libraries(example_widget_glfw  glfw::glfw  vkw::vkw ${vulkan_libs})
     target_compile_definitions(example_widget_glfw PRIVATE VKW_WINDOW_LIB=2)
 
 
@@ -70,8 +71,8 @@ if( VKW_BUILD_EXAMPLES )
 
     if (QT6_INSTALL_PREFIX)
 
-        add_executable( example_widget_qt example_widget_qt.cpp )
-        target_link_libraries(example_widget_qt  Qt6::Widgets pthread  vkw::vkw vkw::vkw Vulkan::Vulkan)
+        add_executable( example_widget_qt examples/example_widget_qt.cpp )
+        target_link_libraries(example_widget_qt  Qt6::Widgets pthread  vkw::vkw ${vulkan_libs})
 
     else()
 
@@ -82,8 +83,8 @@ if( VKW_BUILD_EXAMPLES )
             if (Qt5Widgets_VERSION VERSION_LESS 5.15.0)
                 message(NOTICE "Minimum supported Qt5 version is 5.15. Cannot build Qt examples!")
             else()
-                add_executable( example_widget_qt example_widget_qt.cpp )
-                target_link_libraries(example_widget_qt  Qt5::Widgets pthread  vkw::vkw vkw::vkw Vulkan::Vulkan)
+                add_executable( example_widget_qt examples/example_widget_qt.cpp )
+                target_link_libraries(example_widget_qt  Qt5::Widgets pthread  vkw::vkw ${vulkan_libs})
             endif()
 
         else()
