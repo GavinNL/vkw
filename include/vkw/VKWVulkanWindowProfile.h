@@ -5,6 +5,7 @@
 #include <vulkan/vulkan_profiles.hpp>
 #include <vector>
 #include <string>
+#include <functional>
 #include "VKWVulkanWindow.h"
 
 namespace vkw

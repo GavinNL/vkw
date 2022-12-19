@@ -2,7 +2,6 @@
 #include <vkw/VKWVulkanWindow.h>
 #include <vkw/Adapters/SDLVulkanWindowAdapter.h>
 #include <cassert>
-#include "vulkan_profiles.hpp"
 #include <vkw/VKWVulkanWindowProfile.h>
 #include <vulkan/vk_format_utils.h>
 
